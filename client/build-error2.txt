@@ -1,0 +1,42 @@
+﻿[36mvite v8.0.2 [32mbuilding client environment for production...[36m[39m
+[2K
+transforming...Ô£ô 1055 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                   1.10 kB Ôöé gzip:   0.56 kB
+dist/assets/index-DyrrGEPV.css   25.26 kB Ôöé gzip:   5.07 kB
+dist/assets/index-DHQEwDMJ.js   815.72 kB Ôöé gzip: 249.04 kB
+
+[32mÔ£ô built in 275ms[39m
+node.exe : [33m[plugin 
+builtin:vite-reporter] 
+At line:1 char:1
++ & "C:\Program 
+Files\nodejs/node.exe" 
+"C:\Program 
+Files\nodejs/node_mo ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~
+    + CategoryInfo         
+     : NotSpecified: ([3  
+  3m[plugin builtin:vite   
+ -reporter] :String) []    
+, RemoteException
+    + FullyQualifiedErrorI 
+   d : NativeCommandError
+ 
+(!) Some chunks are larger 
+than 500 kB after 
+minification. Consider:
+- Using dynamic import() 
+to code-split the 
+application
+- Use build.rolldownOptions
+.output.codeSplitting to 
+improve chunking: https://r
+olldown.rs/reference/Output
+Options.codeSplitting
+- Adjust chunk size limit 
+for this warning via build.
+chunkSizeWarningLimit.[39m

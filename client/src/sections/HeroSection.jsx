@@ -1,0 +1,138 @@
+import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import ParticleBackground from '../components/ParticleBackground';
+import HeroIllustration from '../components/HeroIllustration';
+import { useData } from '../context/DataContext';
+
+const roles = ['AI Engineer', 'AR/VR Developer', 'Full Stack Creator', 'Future Technologist'];
+
+export default function HeroSection() {
+  const { profile } = useData();
+  const [roleIndex, setRoleIndex] = useState(0);
+  const [text, setText] = useState('');
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  useEffect(() => {
+    const currentRole = roles[roleIndex];
+    let timeout;
+
+    if (!isDeleting && text === currentRole) {
+      timeout = setTimeout(() => setIsDeleting(true), 2200);
+    } else if (isDeleting && text === '') {
+      setIsDeleting(false);
+      setRoleIndex((prev) => (prev + 1) % roles.length);
+    } else {
+      timeout = setTimeout(() => {
+        setText(currentRole.substring(0, isDeleting ? text.length - 1 : text.length + 1));
+      }, isDeleting ? 35 : 70);
+    }
+
+    return () => clearTimeout(timeout);
+  }, [text, isDeleting, roleIndex]);
+
+  const name = profile?.name || 'Shaheryar';
+
+  return (
+    <section className="hero" id="home">
+      <ParticleBackground />
+
+      <div className="hero-grid">
+        {/* Left: Text content */}
+        <motion.div
+          className="hero-text"
+          initial={{ opacity: 0, x: -30 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+        >
+          <motion.div
+            className="hero-status"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+          >
+            <span className="hero-status-dot" />
+            Available for Work
+          </motion.div>
+
+          <motion.p
+            className="hero-greeting"
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+          >
+            Welcome to my portfolio
+          </motion.p>
+
+          <motion.h1
+            className="hero-name"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.45 }}
+          >
+            Hello, I'm <span className="gradient-text">{name}</span>
+          </motion.h1>
+
+          <motion.p
+            className="hero-subtitle"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.6 }}
+          >
+            {text}<span className="cursor" />
+          </motion.p>
+
+          <motion.p
+            className="hero-description"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.75 }}
+          >
+            {profile?.bio?.substring(0, 140) || 'Building the future with AI, AR/VR, and modern web technologies. Turning complex problems into elegant solutions.'}
+          </motion.p>
+
+          <motion.div
+            className="hero-cta-group"
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.9 }}
+          >
+            <a href="#portfolio" className="btn btn-primary">View My Work →</a>
+            <a href="#contact" className="btn btn-secondary">Get In Touch</a>
+          </motion.div>
+        </motion.div>
+
+        {/* Right: Illustration */}
+        <motion.div
+          className="hero-illustration-wrapper"
+          initial={{ opacity: 0, x: 30 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.8, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
+        >
+          <div className="hero-orbit-ring">
+            {['⚛️', '🧠', '🎮', '☁️'].map((icon, i) => (
+              <div key={i} className="orbit-icon" style={{
+                '--orbit-speed': `${18 + i * 4}s`,
+                top: '50%', left: '50%',
+                transform: `rotate(${i * 90}deg) translateX(var(--orbit-radius)) rotate(-${i * 90}deg)`
+              }}>
+                {icon}
+              </div>
+            ))}
+          </div>
+          <HeroIllustration />
+        </motion.div>
+      </div>
+
+      {/* Scroll indicator */}
+      <motion.div
+        className="hero-scroll-indicator"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 1.8 }}
+      >
+        <div className="scroll-mouse" />
+        <span>Scroll</span>
+      </motion.div>
+    </section>
+  );
+}
