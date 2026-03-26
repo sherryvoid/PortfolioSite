@@ -1606,108 +1606,93 @@ img { max-width: 100%; height: auto; }
   margin-bottom: var(--space-2xl);
 }
 
-/* ── True Honeycomb Grid ── */
-.hive-wrapper {
+/* ── THE EXPERTISE HIVE (User Match) ── */
+.hive-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: var(--space-xl) 0;
+  overflow: visible;
+}
+
+.hive-row {
   display: flex;
   justify-content: center;
-  padding: var(--space-lg) 0;
+  /* Negative margin pulls the rows together to interlock the hexes */
+  margin-bottom: -35px; 
 }
 
-.hive {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  max-width: 900px;
-  /* negative gap via margin on cells */
+.hive-row:last-child {
+  margin-bottom: 0;
 }
 
-.hive-cell {
-  width: 150px;
-  height: 170px;
-  margin: -10px 6px;
-  cursor: pointer;
+.hex-outer-glow {
+  /* Dynamic var populated by React based on logo color */
+  filter: drop-shadow(0 0 10px var(--hex-glow-color, rgba(0, 240, 255, 0.5)));
+  transition: filter 0.3s ease, transform 0.3s ease, opacity 0.3s ease;
+  will-change: transform, filter;
   position: relative;
-  z-index: 1;
+  margin: 0 10px; /* Moved margin here for flex child spacing */
 }
 
-/* Offset every other visual row for honeycomb stagger */
-.hive-cell:nth-child(5n+4),
-.hive-cell:nth-child(5n+5) {
-  margin-top: 10px;
+.hex-outer-glow:hover {
+  transform: scale(1.08);
+  filter: drop-shadow(0 0 20px var(--hex-glow-color, rgba(0, 240, 255, 0.8)));
+  z-index: 10;
 }
 
-/* The outer hex — gradient border glow */
-.hive-hex-border {
-  width: 100%;
-  height: 100%;
+.hex-wrapper {
+  width: 140px;
+  height: 160px;
   clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
-  background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
-  padding: 2.5px;
-  position: relative;
-  transition: all 0.3s ease;
-}
-
-.hive-cell:hover .hive-hex-border {
-  filter: brightness(1.3);
-  box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
-}
-
-/* Inner hex — dark fill */
-.hive-hex-bg {
-  width: 100%;
-  height: 100%;
-  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
-  background: linear-gradient(180deg, rgba(15, 20, 40, 0.95), rgba(8, 12, 28, 0.98));
+  background: var(--hex-border-color, linear-gradient(135deg, #00f0ff, #8a2be2, #00f0ff));
+  background-size: 200% 200%;
   display: flex;
   align-items: center;
   justify-content: center;
+  cursor: pointer;
 }
 
-.hive-hex-content {
+.hex-outer-glow:hover .hex-wrapper {
+  animation: gradientShift 3s ease infinite;
+}
+
+.hex-inner {
+  /* Slightly smaller than wrapper to reveal the gradient "border" */
+  width: 134px;
+  height: 154px;
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  background-color: #050914; /* Inner dark color matching their theme */
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  padding: 20px 10px;
+  gap: 12px;
 }
 
-.hive-icon {
-  width: 52px;
-  height: 52px;
+.hex-icon {
   display: flex;
   align-items: center;
   justify-content: center;
   transition: transform 0.3s ease;
 }
 
-.hive-cell:hover .hive-icon {
-  transform: scale(1.2);
+.hex-wrapper:hover .hex-icon {
+  transform: translateY(-3px);
 }
 
-.hive-name {
-  font-size: 0.75rem;
+.hex-label {
+  color: #e2e8f0;
+  font-size: 0.85rem;
   font-weight: 600;
-  color: var(--text-primary);
+  letter-spacing: 0.5px;
   text-align: center;
-  letter-spacing: 0.03em;
-  white-space: nowrap;
 }
 
-/* Outer glow on hover */
-.hive-hex-border::after {
-  content: '';
-  position: absolute;
-  inset: -6px;
-  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
-  background: linear-gradient(135deg, rgba(0, 212, 255, 0.15), rgba(124, 58, 237, 0.1));
-  z-index: -1;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-
-.hive-cell:hover .hive-hex-border::after {
-  opacity: 1;
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
 
 /* ======================================
@@ -1991,8 +1976,10 @@ img { max-width: 100%; height: auto; }
   .about-grid { grid-template-columns: 1fr; text-align: center; }
   .about-illustration-wrapper { max-width: 300px; margin: 0 auto; }
   .profile-image-frame { width: 280px; }
-  .hive-cell { width: 120px; height: 138px; }
-  .hive-icon { width: 36px; height: 36px; }
+  .hex-wrapper { width: 120px; height: 138px; }
+  .hex-inner { width: 114px; height: 132px; }
+  .hive-row { margin-bottom: -30px; }
+  .hex-icon { width: 45px; height: 45px; }
 
   .contact-hex-layout { grid-template-columns: 1fr; }
   .hex-info-strip { gap: var(--space-md); }
@@ -2025,9 +2012,12 @@ img { max-width: 100%; height: auto; }
   .hero-cta-group .btn { width: 100%; max-width: 280px; justify-content: center; }
 
   .projects-grid { grid-template-columns: 1fr; }
-  .hive-cell { width: 110px; height: 126px; }
-  .hive-name { font-size: 0.6rem; }
-  .hive-icon { width: 30px; height: 30px; }
+  .hex-wrapper { width: 100px; height: 115px; }
+  .hex-outer-glow { margin: 0 5px; }
+  .hex-inner { width: 96px; height: 111px; gap: 8px; }
+  .hive-row { margin-bottom: -25px; }
+  .hex-label { font-size: 0.65rem; }
+  .hex-icon { width: 35px; height: 35px; }
   .profile-image-frame { width: 240px; }
   .hex-info-card { min-width: 100%; }
   .hex-social-links { flex-direction: row; flex-wrap: wrap; }

@@ -3,6 +3,17 @@ import { motion } from 'framer-motion';
 import { useData } from '../../context/DataContext';
 import api from '../../api/axiosConfig';
 
+const Field = ({ label, value, onChange, type = 'text', ...props }) => (
+  <div className="form-group">
+    <label className="form-label">{label}</label>
+    {type === 'textarea' ? (
+      <textarea className="form-textarea" value={value} onChange={onChange} {...props} />
+    ) : (
+      <input className="form-input" type={type} value={value} onChange={onChange} {...props} />
+    )}
+  </div>
+);
+
 export default function ProfileManager() {
   const { profile, refetch } = useData();
   const [form, setForm] = useState({
@@ -108,16 +119,7 @@ export default function ProfileManager() {
     }
   };
 
-  const Field = ({ label, value, onChange, type = 'text', ...props }) => (
-    <div className="form-group">
-      <label className="form-label">{label}</label>
-      {type === 'textarea' ? (
-        <textarea className="form-textarea" value={value} onChange={onChange} {...props} />
-      ) : (
-        <input className="form-input" type={type} value={value} onChange={onChange} {...props} />
-      )}
-    </div>
-  );
+
 
   return (
     <div>
