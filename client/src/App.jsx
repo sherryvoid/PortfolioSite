@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider } from './context/ThemeContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -10,14 +11,14 @@ import AdminLayout from './layouts/AdminLayout';
 // Public pages
 import Home from './pages/public/Home';
 
-// Admin pages
-import Login from './pages/admin/Login';
-import Dashboard from './pages/admin/Dashboard';
-import ProjectsManager from './pages/admin/ProjectsManager';
-import SkillsManager from './pages/admin/SkillsManager';
-import CertsManager from './pages/admin/CertsManager';
-import MessagesManager from './pages/admin/MessagesManager';
-import ProfileManager from './pages/admin/ProfileManager';
+// Lazy load admin pages for performance
+const Login = lazy(() => import('./pages/admin/Login'));
+const Dashboard = lazy(() => import('./pages/admin/Dashboard'));
+const ProjectsManager = lazy(() => import('./pages/admin/ProjectsManager'));
+const SkillsManager = lazy(() => import('./pages/admin/SkillsManager'));
+const CertsManager = lazy(() => import('./pages/admin/CertsManager'));
+const MessagesManager = lazy(() => import('./pages/admin/MessagesManager'));
+const ProfileManager = lazy(() => import('./pages/admin/ProfileManager'));
 
 function ProtectedRoute({ children }) {
   const { isAuthenticated, loading } = useAuth();
@@ -48,7 +49,11 @@ function AppRoutes() {
       } />
 
       {/* Admin Login */}
-      <Route path="/admin/login" element={<Login />} />
+      <Route path="/admin/login" element={
+        <Suspense fallback={<div className="page-loader"><div className="loader" /></div>}>
+          <Login />
+        </Suspense>
+      } />
 
       {/* Protected Admin */}
       <Route path="/admin" element={
@@ -56,12 +61,36 @@ function AppRoutes() {
           <AdminLayout />
         </ProtectedRoute>
       }>
-        <Route index element={<Dashboard />} />
-        <Route path="projects" element={<ProjectsManager />} />
-        <Route path="skills" element={<SkillsManager />} />
-        <Route path="certifications" element={<CertsManager />} />
-        <Route path="messages" element={<MessagesManager />} />
-        <Route path="profile" element={<ProfileManager />} />
+        <Route index element={
+          <Suspense fallback={<div className="page-loader"><div className="loader" /></div>}>
+            <Dashboard />
+          </Suspense>
+        } />
+        <Route path="projects" element={
+          <Suspense fallback={<div className="page-loader"><div className="loader" /></div>}>
+            <ProjectsManager />
+          </Suspense>
+        } />
+        <Route path="skills" element={
+          <Suspense fallback={<div className="page-loader"><div className="loader" /></div>}>
+            <SkillsManager />
+          </Suspense>
+        } />
+        <Route path="certifications" element={
+          <Suspense fallback={<div className="page-loader"><div className="loader" /></div>}>
+            <CertsManager />
+          </Suspense>
+        } />
+        <Route path="messages" element={
+          <Suspense fallback={<div className="page-loader"><div className="loader" /></div>}>
+            <MessagesManager />
+          </Suspense>
+        } />
+        <Route path="profile" element={
+          <Suspense fallback={<div className="page-loader"><div className="loader" /></div>}>
+            <ProfileManager />
+          </Suspense>
+        } />
       </Route>
 
       {/* 404 fallback */}

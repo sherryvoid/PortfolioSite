@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node --watch server.js",
-    "seed": "node utils/seedData.js"
+    "seed": "node utils/seedData.js",
+    "test": "cross-env NODE_ENV=test jest --forceExit"
   },
   "keywords": [],
   "author": "",
@@ -25,5 +26,10 @@
     "mongoose": "^8.14.1",
     "morgan": "^1.10.0",
     "uuid": "^11.1.0"
+  },
+  "devDependencies": {
+    "cross-env": "^10.1.0",
+    "jest": "^30.3.0",
+    "supertest": "^7.2.2"
   }
 }

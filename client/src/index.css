@@ -1662,7 +1662,7 @@ img { max-width: 100%; height: auto; }
   width: 134px;
   height: 154px;
   clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
-  background-color: #050914; /* Inner dark color matching their theme */
+  background-color: var(--bg-card); /* Inner color matching theme */
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1682,7 +1682,7 @@ img { max-width: 100%; height: auto; }
 }
 
 .hex-label {
-  color: #e2e8f0;
+  color: var(--text-primary);
   font-size: 0.85rem;
   font-weight: 600;
   letter-spacing: 0.5px;
