@@ -22,5 +22,6 @@ analyticsEventSchema.index({ timestamp: -1 });
 analyticsEventSchema.index({ sessionId: 1 });
 analyticsEventSchema.index({ type: 1 });
 analyticsEventSchema.index({ target: 1 });
+analyticsEventSchema.index({ country: 1 });
 
 module.exports = mongoose.model('AnalyticsEvent', analyticsEventSchema);

@@ -2,6 +2,7 @@ const express = require('express');
 const AnalyticsEvent = require('../models/AnalyticsEvent');
 const auth = require('../middleware/auth');
 const { analyticsLimiter } = require('../middleware/rateLimiter');
+const axios = require('axios');
 
 const router = express.Router();
 
@@ -10,11 +11,27 @@ router.post('/event', analyticsLimiter, async (req, res, next) => {
   try {
     const { type, target, sessionId, referrer, userAgent, screenSize, duration } = req.body;
     
+    const rawIp = (req.headers['x-forwarded-for'] || req.connection?.remoteAddress || '').split(',')[0].trim();
+    
+    // Attempt to lookup country using geoip-lite
+    let countryName = 'Unknown';
+    if (rawIp && rawIp !== '127.0.0.1' && rawIp !== '::1') {
+      try {
+        const response = await axios.get(`https://get.geojs.io/v1/ip/country/${rawIp}.json`, { timeout: 1500 });
+        if (response.data && response.data.name) {
+          countryName = response.data.name;
+        }
+      } catch (err) {
+        // Silently fail and use 'Unknown'
+      }
+    }
+    
     const event = new AnalyticsEvent({
       type,
       target,
       sessionId,
-      ip: (req.headers['x-forwarded-for'] || req.connection?.remoteAddress || '').split(',')[0].trim(),
+      ip: rawIp,
+      country: countryName,
       referrer: referrer || req.headers.referer || '',
       userAgent: userAgent || req.headers['user-agent'] || '',
       screenSize,
@@ -151,6 +168,39 @@ router.get('/sections', auth, async (req, res, next) => {
     ]);
 
     res.json(sections);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// GET /api/analytics/regions - Admin: region layout breakdown
+router.get('/regions', auth, async (req, res, next) => {
+  try {
+    const { days = 30 } = req.query;
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - parseInt(days));
+
+    const regions = await AnalyticsEvent.aggregate([
+      { $match: { type: 'page_view', timestamp: { $gte: startDate } } },
+      {
+        $group: {
+          _id: '$country',
+          visitors: { $addToSet: '$sessionId' }
+        }
+      },
+      {
+        $project: {
+          _id: 0,
+          region: { $cond: [ { $eq: ['$_id', ''] }, 'Unknown', '$_id' ] },
+          count: { $size: '$visitors' }
+        }
+      },
+      { $match: { region: { $ne: 'Unknown' } } },
+      { $sort: { count: -1 } },
+      { $limit: 10 }
+    ]);
+
+    res.json(regions);
   } catch (error) {
     next(error);
   }

@@ -8,6 +8,7 @@ export default function Dashboard() {
   const [visitors, setVisitors] = useState([]);
   const [topProjects, setTopProjects] = useState([]);
   const [sections, setSections] = useState([]);
+  const [regions, setRegions] = useState([]);
   const [days, setDays] = useState(30);
   const [loading, setLoading] = useState(true);
 
@@ -15,16 +16,18 @@ export default function Dashboard() {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const [overviewRes, visitorsRes, topRes, sectionsRes] = await Promise.all([
+        const [overviewRes, visitorsRes, topRes, sectionsRes, regionsRes] = await Promise.all([
           api.get(`/analytics/overview?days=${days}`),
           api.get(`/analytics/visitors?days=${days}`),
           api.get(`/analytics/top-projects?days=${days}`),
-          api.get(`/analytics/sections?days=${days}`)
+          api.get(`/analytics/sections?days=${days}`),
+          api.get(`/analytics/regions?days=${days}`)
         ]);
         setOverview(overviewRes.data);
         setVisitors(visitorsRes.data);
         setTopProjects(topRes.data);
         setSections(sectionsRes.data);
+        setRegions(regionsRes.data);
       } catch (error) {
         console.error('Failed to fetch analytics:', error);
       } finally {
@@ -143,6 +146,28 @@ export default function Dashboard() {
           </ResponsiveContainer>
         </motion.div>
       </div>
+
+      {/* Regions Chart */}
+      {regions.length > 0 && (
+        <motion.div
+          className="admin-chart-card"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.65 }}
+          style={{ marginTop: 'var(--space-xl)' }}
+        >
+          <h3 className="admin-chart-title" style={{ marginBottom: 'var(--space-lg)' }}>Visitor Regions</h3>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={regions}>
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" />
+              <XAxis dataKey="region" tick={{ fontSize: 12, fill: 'var(--text-muted)' }} />
+              <YAxis tick={{ fontSize: 12, fill: 'var(--text-muted)' }} />
+              <Tooltip contentStyle={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: 8 }} />
+              <Bar dataKey="count" fill="#EC4899" radius={[4, 4, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </motion.div>
+      )}
 
       {/* Recent Activity */}
       {overview?.recentEvents?.length > 0 && (
