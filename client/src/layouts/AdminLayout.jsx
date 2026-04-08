@@ -8,6 +8,7 @@ const navItems = [
   { to: '/admin/projects', icon: '🚀', label: 'Projects' },
   { to: '/admin/skills', icon: '⚡', label: 'Skills' },
   { to: '/admin/certifications', icon: '🏆', label: 'Certifications' },
+  { to: '/admin/jobs', icon: '🤖', label: 'AI Job Matcher' },
   { to: '/admin/messages', icon: '📧', label: 'Messages' },
 ];
 

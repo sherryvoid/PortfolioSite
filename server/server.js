@@ -19,6 +19,7 @@ const certRoutes = require('./routes/certifications');
 const analyticsRoutes = require('./routes/analytics');
 const contactRoutes = require('./routes/contact');
 const profileRoutes = require('./routes/profile');
+const jobRoutes = require('./routes/jobs'); // [NEW] Job Matcher routes
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -49,6 +50,7 @@ app.use('/api/certifications', certRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/contact', contactRoutes);
 app.use('/api/profile', profileRoutes);
+app.use('/api/jobs', jobRoutes); // [NEW] Job Matcher endpoints
 
 // Health check
 app.get('/api/health', (req, res) => {

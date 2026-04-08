@@ -19,6 +19,7 @@ const SkillsManager = lazy(() => import('./pages/admin/SkillsManager'));
 const CertsManager = lazy(() => import('./pages/admin/CertsManager'));
 const MessagesManager = lazy(() => import('./pages/admin/MessagesManager'));
 const ProfileManager = lazy(() => import('./pages/admin/ProfileManager'));
+const JobMatcher = lazy(() => import('./pages/admin/JobMatcher')); // [NEW] Job Matcher
 
 function ProtectedRoute({ children }) {
   const { isAuthenticated, loading } = useAuth();
@@ -84,6 +85,11 @@ function AppRoutes() {
         <Route path="messages" element={
           <Suspense fallback={<div className="page-loader"><div className="loader" /></div>}>
             <MessagesManager />
+          </Suspense>
+        } />
+        <Route path="jobs" element={
+          <Suspense fallback={<div className="page-loader"><div className="loader" /></div>}>
+            <JobMatcher />
           </Suspense>
         } />
         <Route path="profile" element={
