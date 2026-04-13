@@ -3,6 +3,7 @@ import { Outlet } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import ThemeToggle from '../components/ThemeToggle';
 import GlobalNeuralBg from '../components/GlobalNeuralBg';
+import { useData } from '../context/DataContext';
 
 const navLinks = [
   { label: 'Home', href: '#home' },
@@ -13,9 +14,11 @@ const navLinks = [
 ];
 
 export default function PublicLayout({ children }) {
+  const { profile } = useData();
   const [scrolled, setScrolled] = useState(false);
   const [scrollProgress, setScrollProgress] = useState(0);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const displayName = profile?.name || 'Portfolio';
 
   useEffect(() => {
     const handleScroll = () => {
@@ -43,7 +46,7 @@ export default function PublicLayout({ children }) {
       {/* Navbar */}
       <nav className={`navbar ${scrolled ? 'scrolled' : ''}`}>
         <a href="#home" className="navbar-logo" onClick={() => setMobileOpen(false)}>
-          {'<'}Shaheryar {'/>'}
+          {'<'}{displayName}{' />'}
         </a>
 
         {/* Desktop nav */}
@@ -124,7 +127,7 @@ export default function PublicLayout({ children }) {
 
       {/* Footer */}
       <footer className="footer" style={{ position: 'relative', zIndex: 1 }}>
-        <p>© {new Date().getFullYear()} Shaheryar. Crafted with ❤️ and modern tech.</p>
+        <p>© {new Date().getFullYear()} {displayName}. Crafted with ❤️ and modern tech.</p>
       </footer>
     </>
   );

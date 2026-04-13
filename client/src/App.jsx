@@ -19,7 +19,9 @@ const SkillsManager = lazy(() => import('./pages/admin/SkillsManager'));
 const CertsManager = lazy(() => import('./pages/admin/CertsManager'));
 const MessagesManager = lazy(() => import('./pages/admin/MessagesManager'));
 const ProfileManager = lazy(() => import('./pages/admin/ProfileManager'));
-const JobMatcher = lazy(() => import('./pages/admin/JobMatcher')); // [NEW] Job Matcher
+const JobMatcher = lazy(() => import('./pages/admin/JobMatcher'));
+const ApplicationTracker = lazy(() => import('./pages/admin/ApplicationTracker'));
+const CVGenerator = lazy(() => import('./pages/admin/CVGenerator'));
 
 function ProtectedRoute({ children }) {
   const { isAuthenticated, loading } = useAuth();
@@ -39,6 +41,12 @@ function ProtectedRoute({ children }) {
   return children;
 }
 
+const AdminSuspense = ({ children }) => (
+  <Suspense fallback={<div className="page-loader"><div className="loader" /></div>}>
+    {children}
+  </Suspense>
+);
+
 function AppRoutes() {
   return (
     <Routes>
@@ -51,9 +59,7 @@ function AppRoutes() {
 
       {/* Admin Login */}
       <Route path="/admin/login" element={
-        <Suspense fallback={<div className="page-loader"><div className="loader" /></div>}>
-          <Login />
-        </Suspense>
+        <AdminSuspense><Login /></AdminSuspense>
       } />
 
       {/* Protected Admin */}
@@ -62,41 +68,15 @@ function AppRoutes() {
           <AdminLayout />
         </ProtectedRoute>
       }>
-        <Route index element={
-          <Suspense fallback={<div className="page-loader"><div className="loader" /></div>}>
-            <Dashboard />
-          </Suspense>
-        } />
-        <Route path="projects" element={
-          <Suspense fallback={<div className="page-loader"><div className="loader" /></div>}>
-            <ProjectsManager />
-          </Suspense>
-        } />
-        <Route path="skills" element={
-          <Suspense fallback={<div className="page-loader"><div className="loader" /></div>}>
-            <SkillsManager />
-          </Suspense>
-        } />
-        <Route path="certifications" element={
-          <Suspense fallback={<div className="page-loader"><div className="loader" /></div>}>
-            <CertsManager />
-          </Suspense>
-        } />
-        <Route path="messages" element={
-          <Suspense fallback={<div className="page-loader"><div className="loader" /></div>}>
-            <MessagesManager />
-          </Suspense>
-        } />
-        <Route path="jobs" element={
-          <Suspense fallback={<div className="page-loader"><div className="loader" /></div>}>
-            <JobMatcher />
-          </Suspense>
-        } />
-        <Route path="profile" element={
-          <Suspense fallback={<div className="page-loader"><div className="loader" /></div>}>
-            <ProfileManager />
-          </Suspense>
-        } />
+        <Route index element={<AdminSuspense><Dashboard /></AdminSuspense>} />
+        <Route path="projects" element={<AdminSuspense><ProjectsManager /></AdminSuspense>} />
+        <Route path="skills" element={<AdminSuspense><SkillsManager /></AdminSuspense>} />
+        <Route path="certifications" element={<AdminSuspense><CertsManager /></AdminSuspense>} />
+        <Route path="messages" element={<AdminSuspense><MessagesManager /></AdminSuspense>} />
+        <Route path="jobs" element={<AdminSuspense><JobMatcher /></AdminSuspense>} />
+        <Route path="applications" element={<AdminSuspense><ApplicationTracker /></AdminSuspense>} />
+        <Route path="cv-generator" element={<AdminSuspense><CVGenerator /></AdminSuspense>} />
+        <Route path="profile" element={<AdminSuspense><ProfileManager /></AdminSuspense>} />
       </Route>
 
       {/* 404 fallback */}

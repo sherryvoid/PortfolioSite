@@ -21,11 +21,36 @@ const profileSchema = new mongoose.Schema({
     happyClients: { type: Number, default: 0 }
   },
   heroSubtitle: { type: String, default: 'Software Developer · Problem Solver · Creator' },
+  heroGreeting: { type: String, default: 'Welcome to my portfolio' },
+  heroRoles: [{ type: String }],    // Typewriter cycling texts e.g. ['Full Stack Developer', 'AI Engineer']
+  status: { type: String, default: 'Available for Work' },
+  cvPhoto: { type: String, default: '' },  // Separate headshot photo for CV (base64)
   aboutTimeline: [{
     year: String,
     title: String,
     description: String
-  }]
+  }],
+
+  // ── Enriched Profile Fields (read by AI for matching & CV gen) ──
+  experience: [{
+    company: { type: String, default: '' },
+    role: { type: String, default: '' },
+    duration: { type: String, default: '' },
+    description: { type: String, default: '' }
+  }],
+  education: [{
+    institution: { type: String, default: '' },
+    degree: { type: String, default: '' },
+    field: { type: String, default: '' },
+    year: { type: String, default: '' }
+  }],
+  languages: [{
+    name: { type: String, default: '' },
+    level: { type: String, default: '' }   // 'Native', 'Fluent', 'C1', 'B2', 'A1' etc.
+  }],
+  preferredJobTypes: [String],      // ['full_time', 'part_time']
+  preferredLocations: [String],     // ['Germany', 'Remote']
+  preferredWorkModes: [String]      // ['remote', 'hybrid']
 }, {
   timestamps: true
 });

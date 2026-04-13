@@ -102,7 +102,7 @@ export default function ContactSection() {
           <HexInfoCard
             icon="🚀"
             label="STATUS"
-            value="Available for Work"
+            value={profile?.status || 'Available for Work'}
             delay={0.3}
           />
         </div>

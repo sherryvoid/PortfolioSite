@@ -1,4 +1,5 @@
-import { NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import ThemeToggle from '../components/ThemeToggle';
 
@@ -9,12 +10,25 @@ const navItems = [
   { to: '/admin/skills', icon: '⚡', label: 'Skills' },
   { to: '/admin/certifications', icon: '🏆', label: 'Certifications' },
   { to: '/admin/jobs', icon: '🤖', label: 'AI Job Matcher' },
+  { to: '/admin/applications', icon: '📋', label: 'Applications' },
+  { to: '/admin/cv-generator', icon: '📄', label: 'CV Generator' },
   { to: '/admin/messages', icon: '📧', label: 'Messages' },
 ];
 
 export default function AdminLayout() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  // Close sidebar on route change (mobile)
+  useEffect(() => { setMobileOpen(false); }, [location.pathname]);
+
+  // Prevent scroll when mobile sidebar is open
+  useEffect(() => {
+    document.body.style.overflow = mobileOpen ? 'hidden' : '';
+    return () => { document.body.style.overflow = ''; };
+  }, [mobileOpen]);
 
   const handleLogout = async () => {
     await logout();
@@ -23,7 +37,22 @@ export default function AdminLayout() {
 
   return (
     <div className="admin-layout">
-      <aside className="admin-sidebar">
+      {/* Mobile hamburger button */}
+      <button
+        className="admin-mobile-toggle"
+        onClick={() => setMobileOpen(!mobileOpen)}
+        aria-label="Toggle sidebar"
+      >
+        {mobileOpen ? '✕' : '☰'}
+      </button>
+
+      {/* Mobile overlay */}
+      <div
+        className={`admin-sidebar-overlay ${mobileOpen ? 'visible' : ''}`}
+        onClick={() => setMobileOpen(false)}
+      />
+
+      <aside className={`admin-sidebar ${mobileOpen ? 'mobile-open' : ''}`}>
         <div className="admin-sidebar-logo">
           {'<'}Admin{' />'}
         </div>

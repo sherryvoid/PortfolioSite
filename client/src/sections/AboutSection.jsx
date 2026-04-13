@@ -59,7 +59,7 @@ export default function AboutSection() {
               <div className="profile-image-frame">
                 <img
                   src={profileImage}
-                  alt="Shaheryar — Software Developer"
+                  alt={`${profile?.name || 'Developer'} — Software Developer`}
                   className="profile-image"
                   onError={(e) => {
                     e.target.style.display = 'none';
@@ -111,7 +111,7 @@ export default function AboutSection() {
                       <div className="timeline-dot" />
                       <div className="timeline-year">{item.year}</div>
                       <div className="timeline-title">{item.title}</div>
-                      <div className="timeline-desc">{item.description}</div>
+                      <div className="timeline-desc" style={{ whiteSpace: 'pre-wrap', lineHeight: 1.6 }}>{item.description}</div>
                     </div>
                   </AnimatedSection>
                 ))}

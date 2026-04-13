@@ -15,7 +15,6 @@ const connectDB = async () => {
         console.log('Using MongoDB Memory Server (in-memory database)');
         console.log('⚠️  Data will not persist between restarts. Set MONGODB_URI to a real MongoDB instance for persistence.');
       } catch (memErr) {
-        // If memory server fails, try the original URI anyway
         console.log('MongoDB Memory Server not available, trying configured URI...');
       }
     }

@@ -18,10 +18,16 @@ export default function ProfileManager() {
   const { profile, refetch } = useData();
   const [form, setForm] = useState({
     name: '', title: '', bio: '', email: '', phone: '', location: '',
-    heroSubtitle: '',
+    heroSubtitle: '', heroGreeting: '', heroRoles: [], status: '',
     social: { github: '', linkedin: '', twitter: '', website: '' },
     stats: { yearsExperience: 0, projectsCompleted: 0, happyClients: 0 },
-    aboutTimeline: []
+    aboutTimeline: [],
+    experience: [],
+    education: [],
+    languages: [],
+    preferredJobTypes: [],
+    preferredLocations: [],
+    preferredWorkModes: []
   });
   const [photoFile, setPhotoFile] = useState(null);
   const [photoPreview, setPhotoPreview] = useState('');
@@ -40,6 +46,9 @@ export default function ProfileManager() {
         phone: profile.phone || '',
         location: profile.location || '',
         heroSubtitle: profile.heroSubtitle || '',
+        heroGreeting: profile.heroGreeting || '',
+        heroRoles: profile.heroRoles || [],
+        status: profile.status || '',
         social: {
           github: profile.social?.github || '',
           linkedin: profile.social?.linkedin || '',
@@ -52,6 +61,12 @@ export default function ProfileManager() {
           happyClients: profile.stats?.happyClients || 0,
         },
         aboutTimeline: profile.aboutTimeline || [],
+        experience: profile.experience || [],
+        education: profile.education || [],
+        languages: profile.languages || [],
+        preferredJobTypes: profile.preferredJobTypes || [],
+        preferredLocations: profile.preferredLocations || [],
+        preferredWorkModes: profile.preferredWorkModes || []
       });
       setPhotoPreview(profile.photo || '');
     }
@@ -74,6 +89,7 @@ export default function ProfileManager() {
     if (fileRef.current) fileRef.current.value = '';
   };
 
+  // ── Timeline ──
   const addTimelineItem = () => {
     setForm(prev => ({
       ...prev,
@@ -94,6 +110,66 @@ export default function ProfileManager() {
       ...prev,
       aboutTimeline: prev.aboutTimeline.filter((_, i) => i !== idx)
     }));
+  };
+
+  // ── Experience ──
+  const addExperience = () => {
+    setForm(prev => ({
+      ...prev,
+      experience: [...prev.experience, { company: '', role: '', duration: '', description: '' }]
+    }));
+  };
+
+  const updateExperience = (idx, field, value) => {
+    setForm(prev => {
+      const updated = [...prev.experience];
+      updated[idx] = { ...updated[idx], [field]: value };
+      return { ...prev, experience: updated };
+    });
+  };
+
+  const removeExperience = (idx) => {
+    setForm(prev => ({ ...prev, experience: prev.experience.filter((_, i) => i !== idx) }));
+  };
+
+  // ── Education ──
+  const addEducation = () => {
+    setForm(prev => ({
+      ...prev,
+      education: [...prev.education, { institution: '', degree: '', field: '', year: '' }]
+    }));
+  };
+
+  const updateEducation = (idx, field, value) => {
+    setForm(prev => {
+      const updated = [...prev.education];
+      updated[idx] = { ...updated[idx], [field]: value };
+      return { ...prev, education: updated };
+    });
+  };
+
+  const removeEducation = (idx) => {
+    setForm(prev => ({ ...prev, education: prev.education.filter((_, i) => i !== idx) }));
+  };
+
+  // ── Languages ──
+  const addLanguage = () => {
+    setForm(prev => ({
+      ...prev,
+      languages: [...prev.languages, { name: '', level: '' }]
+    }));
+  };
+
+  const updateLanguage = (idx, field, value) => {
+    setForm(prev => {
+      const updated = [...prev.languages];
+      updated[idx] = { ...updated[idx], [field]: value };
+      return { ...prev, languages: updated };
+    });
+  };
+
+  const removeLanguage = (idx) => {
+    setForm(prev => ({ ...prev, languages: prev.languages.filter((_, i) => i !== idx) }));
   };
 
   const handleSave = async () => {
@@ -119,7 +195,21 @@ export default function ProfileManager() {
     }
   };
 
-
+  const sectionCard = (title, children, delay = 0, action = null) => (
+    <motion.div
+      className="admin-chart-card"
+      style={{ marginTop: 'var(--space-xl)' }}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay }}
+    >
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-lg)' }}>
+        <h3 style={{ fontWeight: 700 }}>{title}</h3>
+        {action}
+      </div>
+      {children}
+    </motion.div>
+  );
 
   return (
     <div>
@@ -160,8 +250,19 @@ export default function ProfileManager() {
 
           <Field label="Full Name" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} />
           <Field label="Title / Role" value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} placeholder="Full Stack Developer" />
-          <Field label="Hero Subtitle (typewriter)" value={form.heroSubtitle} onChange={e => setForm({ ...form, heroSubtitle: e.target.value })} placeholder="Software Developer · Problem Solver · Creator" />
           <Field label="Bio / About Description" value={form.bio} onChange={e => setForm({ ...form, bio: e.target.value })} type="textarea" style={{ minHeight: 120 }} />
+
+          <div style={{ borderTop: '1px solid var(--border-color)', margin: 'var(--space-lg) 0', paddingTop: 'var(--space-lg)' }}>
+            <h4 style={{ fontWeight: 600, marginBottom: 'var(--space-md)' }}>🏠 Hero / Portfolio Settings</h4>
+            <Field label="Hero Greeting" value={form.heroGreeting} onChange={e => setForm({ ...form, heroGreeting: e.target.value })} placeholder="Welcome to my portfolio" />
+            <Field label="Hero Subtitle (fallback for typewriter)" value={form.heroSubtitle} onChange={e => setForm({ ...form, heroSubtitle: e.target.value })} placeholder="Software Developer · Problem Solver · Creator" />
+            <div className="form-group">
+              <label className="form-label">Typewriter Roles (one per line)</label>
+              <textarea className="form-textarea" value={(form.heroRoles || []).join('\n')} onChange={e => setForm({ ...form, heroRoles: e.target.value.split('\n').map(s => s.trim()).filter(Boolean) })} placeholder={'Full Stack Developer\nAI Engineer\nProblem Solver'} style={{ minHeight: 80 }} />
+              <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>These cycle in the hero typing animation. Leave empty to use subtitle split by · or ,</span>
+            </div>
+            <Field label="Availability Status" value={form.status} onChange={e => setForm({ ...form, status: e.target.value })} placeholder="Available for Work" />
+          </div>
         </motion.div>
 
         {/* Right Column */}
@@ -191,10 +292,67 @@ export default function ProfileManager() {
         </div>
       </motion.div>
 
+
+
+      {/* Education */}
+      {sectionCard('🎓 Education', (
+        <>
+          {form.education.length === 0 && (
+            <p style={{ color: 'var(--text-muted)', textAlign: 'center', padding: 'var(--space-lg)' }}>No education entries. Click "+ Add" to create one.</p>
+          )}
+          {form.education.map((item, idx) => (
+            <div key={idx} style={{ padding: 'var(--space-lg)', background: 'var(--bg-secondary)', borderRadius: 'var(--radius-lg)', marginBottom: 'var(--space-md)', border: '1px solid var(--border-color)' }}>
+              <div className="form-row" style={{ gridTemplateColumns: '1fr 1fr auto' }}>
+                <Field label="Institution" value={item.institution} onChange={e => updateEducation(idx, 'institution', e.target.value)} placeholder="MIT" />
+                <Field label="Degree" value={item.degree} onChange={e => updateEducation(idx, 'degree', e.target.value)} placeholder="B.Sc." />
+                <div style={{ display: 'flex', alignItems: 'flex-end', paddingBottom: 'var(--space-md)' }}>
+                  <button className="btn btn-danger btn-sm" onClick={() => removeEducation(idx)}>✕</button>
+                </div>
+              </div>
+              <div className="form-row" style={{ gridTemplateColumns: '1fr 100px' }}>
+                <Field label="Field of Study" value={item.field} onChange={e => updateEducation(idx, 'field', e.target.value)} placeholder="Computer Science" />
+                <Field label="Year" value={item.year} onChange={e => updateEducation(idx, 'year', e.target.value)} placeholder="2024" />
+              </div>
+            </div>
+          ))}
+        </>
+      ), 0.35, <button className="btn btn-secondary btn-sm" onClick={addEducation}>+ Add</button>)}
+
+      {/* Languages */}
+      {sectionCard('🌐 Languages', (
+        <>
+          {form.languages.length === 0 && (
+            <p style={{ color: 'var(--text-muted)', textAlign: 'center', padding: 'var(--space-lg)' }}>No languages. Click "+ Add" to create one.</p>
+          )}
+          {form.languages.map((item, idx) => (
+            <div key={idx} style={{ display: 'flex', gap: 'var(--space-sm)', alignItems: 'flex-end', marginBottom: 'var(--space-sm)' }}>
+              <div className="form-group" style={{ margin: 0, flex: 1 }}>
+                {idx === 0 && <label className="form-label">Language</label>}
+                <input className="form-input" value={item.name} onChange={e => updateLanguage(idx, 'name', e.target.value)} placeholder="English" />
+              </div>
+              <div className="form-group" style={{ margin: 0, flex: 1 }}>
+                {idx === 0 && <label className="form-label">Level</label>}
+                <select className="form-input" value={item.level} onChange={e => updateLanguage(idx, 'level', e.target.value)}>
+                  <option value="">Select level</option>
+                  <option value="Native">Native</option>
+                  <option value="Fluent">Fluent (C2)</option>
+                  <option value="C1">Advanced (C1)</option>
+                  <option value="B2">Upper Intermediate (B2)</option>
+                  <option value="B1">Intermediate (B1)</option>
+                  <option value="A2">Elementary (A2)</option>
+                  <option value="A1">Beginner (A1)</option>
+                </select>
+              </div>
+              <button className="btn btn-danger btn-sm" onClick={() => removeLanguage(idx)} style={{ marginBottom: idx === 0 ? 0 : 'var(--space-md)' }}>✕</button>
+            </div>
+          ))}
+        </>
+      ), 0.4, <button className="btn btn-secondary btn-sm" onClick={addLanguage}>+ Add</button>)}
+
       {/* Timeline */}
-      <motion.div className="admin-chart-card" style={{ marginTop: 'var(--space-xl)' }} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
+      <motion.div className="admin-chart-card" style={{ marginTop: 'var(--space-xl)' }} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.45 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-lg)' }}>
-          <h3 style={{ fontWeight: 700 }}>About Timeline</h3>
+          <h3 style={{ fontWeight: 700 }}>⏳ Timeline & Work Experience</h3>
           <button className="btn btn-secondary btn-sm" onClick={addTimelineItem}>+ Add Entry</button>
         </div>
 
@@ -211,7 +369,7 @@ export default function ProfileManager() {
                 <button className="btn btn-danger btn-sm" onClick={() => removeTimeline(idx)}>✕</button>
               </div>
             </div>
-            <Field label="Description" value={item.description} onChange={e => updateTimeline(idx, 'description', e.target.value)} placeholder="Brief description" />
+            <Field label="Description / Details (supports bullets)" value={item.description} onChange={e => updateTimeline(idx, 'description', e.target.value)} type="textarea" placeholder={"- Led the migration...\n- Increased performance by 40%..."} style={{ minHeight: 100 }} />
           </div>
         ))}
       </motion.div>

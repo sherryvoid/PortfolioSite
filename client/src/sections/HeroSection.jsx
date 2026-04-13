@@ -4,16 +4,19 @@ import ParticleBackground from '../components/ParticleBackground';
 import HeroIllustration from '../components/HeroIllustration';
 import { useData } from '../context/DataContext';
 
-const roles = ['AI Engineer', 'AR/VR Developer', 'Full Stack Creator', 'Future Technologist'];
-
 export default function HeroSection() {
   const { profile } = useData();
   const [roleIndex, setRoleIndex] = useState(0);
   const [text, setText] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
 
+  // Dynamic roles from profile or fallback
+  const roles = (profile?.heroRoles?.length > 0)
+    ? profile.heroRoles
+    : (profile?.heroSubtitle || 'Full Stack Developer · AI Engineer · Problem Solver').split(/[·,|]/).map(s => s.trim()).filter(Boolean);
+
   useEffect(() => {
-    const currentRole = roles[roleIndex];
+    const currentRole = roles[roleIndex % roles.length];
     let timeout;
 
     if (!isDeleting && text === currentRole) {
@@ -28,9 +31,11 @@ export default function HeroSection() {
     }
 
     return () => clearTimeout(timeout);
-  }, [text, isDeleting, roleIndex]);
+  }, [text, isDeleting, roleIndex, roles]);
 
-  const name = profile?.name || 'Shaheryar';
+  const name = profile?.name || 'Developer';
+  const greeting = profile?.heroGreeting || 'Welcome to my portfolio';
+  const status = profile?.status || 'Available for Work';
 
   return (
     <section className="hero" id="home">
@@ -51,7 +56,7 @@ export default function HeroSection() {
             transition={{ delay: 0.2 }}
           >
             <span className="hero-status-dot" />
-            Available for Work
+            {status}
           </motion.div>
 
           <motion.p
@@ -60,7 +65,7 @@ export default function HeroSection() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
           >
-            Welcome to my portfolio
+            {greeting}
           </motion.p>
 
           <motion.h1
@@ -87,7 +92,7 @@ export default function HeroSection() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.75 }}
           >
-            {profile?.bio?.substring(0, 140) || 'Building the future with AI, AR/VR, and modern web technologies. Turning complex problems into elegant solutions.'}
+            {profile?.bio?.substring(0, 140) || 'Building the future with modern web technologies. Turning complex problems into elegant solutions.'}
           </motion.p>
 
           <motion.div
