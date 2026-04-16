@@ -17,8 +17,9 @@ const Field = ({ label, value, onChange, type = 'text', ...props }) => (
 export default function ProfileManager() {
   const { profile, refetch } = useData();
   const [form, setForm] = useState({
-    name: '', title: '', bio: '', email: '', phone: '', location: '',
+    name: '', siteName: '', title: '', bio: '', email: '', phone: '', location: '',
     heroSubtitle: '', heroGreeting: '', heroRoles: [], status: '',
+    availability: '', heroDesignation: '', heroAbout: '',
     social: { github: '', linkedin: '', twitter: '', website: '' },
     stats: { yearsExperience: 0, projectsCompleted: 0, happyClients: 0 },
     aboutTimeline: [],
@@ -31,15 +32,22 @@ export default function ProfileManager() {
   });
   const [photoFile, setPhotoFile] = useState(null);
   const [photoPreview, setPhotoPreview] = useState('');
+  const [logoFile, setLogoFile] = useState(null);
+  const [logoPreview, setLogoPreview] = useState('');
+  const [faviconFile, setFaviconFile] = useState(null);
+  const [faviconPreview, setFaviconPreview] = useState('');
   const [loading, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const fileRef = useRef(null);
+  const logoRef = useRef(null);
+  const faviconRef = useRef(null);
 
   // Load profile data into form
   useEffect(() => {
     if (profile) {
       setForm({
         name: profile.name || '',
+        siteName: profile.siteName || '',
         title: profile.title || '',
         bio: profile.bio || '',
         email: profile.email || '',
@@ -49,6 +57,9 @@ export default function ProfileManager() {
         heroGreeting: profile.heroGreeting || '',
         heroRoles: profile.heroRoles || [],
         status: profile.status || '',
+        availability: profile.availability || profile.status || 'Available for Work',
+        heroDesignation: profile.heroDesignation || profile.title || '',
+        heroAbout: profile.heroAbout || '',
         social: {
           github: profile.social?.github || '',
           linkedin: profile.social?.linkedin || '',
@@ -69,19 +80,25 @@ export default function ProfileManager() {
         preferredWorkModes: profile.preferredWorkModes || []
       });
       setPhotoPreview(profile.photo || '');
+      setLogoPreview(profile.logo || '');
+      setFaviconPreview(profile.favicon || '');
     }
   }, [profile]);
 
-  const handlePhotoChange = (e) => {
+  const handleImageChange = (e, setFile, setPreview) => {
     const file = e.target.files[0];
     if (!file) return;
     if (!file.type.startsWith('image/')) return alert('Please select an image.');
     if (file.size > 5 * 1024 * 1024) return alert('Max 5MB.');
-    setPhotoFile(file);
+    setFile(file);
     const reader = new FileReader();
-    reader.onload = (ev) => setPhotoPreview(ev.target.result);
+    reader.onload = (ev) => setPreview(ev.target.result);
     reader.readAsDataURL(file);
   };
+
+  const handlePhotoChange = (e) => handleImageChange(e, setPhotoFile, setPhotoPreview);
+  const handleLogoChange = (e) => handleImageChange(e, setLogoFile, setLogoPreview);
+  const handleFaviconChange = (e) => handleImageChange(e, setFaviconFile, setFaviconPreview);
 
   const removePhoto = () => {
     setPhotoFile(null);
@@ -172,19 +189,24 @@ export default function ProfileManager() {
     setForm(prev => ({ ...prev, languages: prev.languages.filter((_, i) => i !== idx) }));
   };
 
+  const toBase64 = (file) => new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = (ev) => resolve(ev.target.result);
+    reader.readAsDataURL(file);
+  });
+
   const handleSave = async () => {
     setSaving(true);
     setSaved(false);
     try {
       let photoData = photoPreview;
-      if (photoFile) {
-        photoData = await new Promise((resolve) => {
-          const reader = new FileReader();
-          reader.onload = (ev) => resolve(ev.target.result);
-          reader.readAsDataURL(photoFile);
-        });
-      }
-      await api.put('/profile', { ...form, photo: photoData });
+      if (photoFile) photoData = await toBase64(photoFile);
+      let logoData = logoPreview;
+      if (logoFile) logoData = await toBase64(logoFile);
+      let faviconData = faviconPreview;
+      if (faviconFile) faviconData = await toBase64(faviconFile);
+
+      await api.put('/profile', { ...form, photo: photoData, logo: logoData, favicon: faviconData });
       refetch();
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
@@ -253,15 +275,57 @@ export default function ProfileManager() {
           <Field label="Bio / About Description" value={form.bio} onChange={e => setForm({ ...form, bio: e.target.value })} type="textarea" style={{ minHeight: 120 }} />
 
           <div style={{ borderTop: '1px solid var(--border-color)', margin: 'var(--space-lg) 0', paddingTop: 'var(--space-lg)' }}>
-            <h4 style={{ fontWeight: 600, marginBottom: 'var(--space-md)' }}>🏠 Hero / Portfolio Settings</h4>
-            <Field label="Hero Greeting" value={form.heroGreeting} onChange={e => setForm({ ...form, heroGreeting: e.target.value })} placeholder="Welcome to my portfolio" />
-            <Field label="Hero Subtitle (fallback for typewriter)" value={form.heroSubtitle} onChange={e => setForm({ ...form, heroSubtitle: e.target.value })} placeholder="Software Developer · Problem Solver · Creator" />
-            <div className="form-group">
-              <label className="form-label">Typewriter Roles (one per line)</label>
-              <textarea className="form-textarea" value={(form.heroRoles || []).join('\n')} onChange={e => setForm({ ...form, heroRoles: e.target.value.split('\n').map(s => s.trim()).filter(Boolean) })} placeholder={'Full Stack Developer\nAI Engineer\nProblem Solver'} style={{ minHeight: 80 }} />
-              <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>These cycle in the hero typing animation. Leave empty to use subtitle split by · or ,</span>
+            <h4 style={{ fontWeight: 600, marginBottom: 'var(--space-md)' }}>🌐 Site Identity / Branding</h4>
+            <Field label="Site Name (Navbar & Header)" value={form.siteName} onChange={e => setForm({ ...form, siteName: e.target.value })} placeholder="My Awesome Portfolio" />
+            
+            <div className="form-row" style={{ gridTemplateColumns: '1fr 1fr' }}>
+              {/* Logo Upload */}
+              <div className="form-group">
+                <label className="form-label">Site Logo (Navbar)</label>
+                <div className="thumbnail-upload-area" style={{ minHeight: '120px' }}>
+                  {logoPreview ? (
+                    <div className="thumbnail-preview-wrapper" style={{ minHeight: '120px' }}>
+                      <img src={logoPreview} alt="Logo" className="thumbnail-preview-img" style={{ maxHeight: 40, width: 'auto', objectFit: 'contain' }} />
+                      <button type="button" className="thumbnail-remove-btn" onClick={() => { setLogoFile(null); setLogoPreview(''); if(logoRef.current) logoRef.current.value=''}}>✕</button>
+                    </div>
+                  ) : (
+                    <div className="thumbnail-dropzone" onClick={() => logoRef.current?.click()} style={{ padding: 'var(--space-md)', minHeight: '120px' }}>
+                      <div className="thumbnail-dropzone-icon" style={{ fontSize: '1.5rem', marginBottom: '4px' }}>✨</div>
+                      <p style={{ fontSize: '0.8rem' }}>Upload Logo</p>
+                    </div>
+                  )}
+                  <input ref={logoRef} type="file" accept="image/*" onChange={handleLogoChange} style={{ display: 'none' }} />
+                </div>
+              </div>
+
+              {/* Favicon Upload */}
+              <div className="form-group">
+                <label className="form-label">Favicon (Browser Tab)</label>
+                <div className="thumbnail-upload-area" style={{ minHeight: '120px' }}>
+                  {faviconPreview ? (
+                    <div className="thumbnail-preview-wrapper" style={{ minHeight: '120px' }}>
+                      <img src={faviconPreview} alt="Favicon" className="thumbnail-preview-img" style={{ height: 32, width: 32, borderRadius: 4, objectFit: 'cover' }} />
+                      <button type="button" className="thumbnail-remove-btn" onClick={() => { setFaviconFile(null); setFaviconPreview(''); if(faviconRef.current) faviconRef.current.value=''}}>✕</button>
+                    </div>
+                  ) : (
+                    <div className="thumbnail-dropzone" onClick={() => faviconRef.current?.click()} style={{ padding: 'var(--space-md)', minHeight: '120px' }}>
+                      <div className="thumbnail-dropzone-icon" style={{ fontSize: '1.5rem', marginBottom: '4px' }}>📑</div>
+                      <p style={{ fontSize: '0.8rem' }}>Upload Favicon</p>
+                    </div>
+                  )}
+                  <input ref={faviconRef} type="file" accept="image/x-icon,image/png,image/svg+xml,image/*" onChange={handleFaviconChange} style={{ display: 'none' }} />
+                </div>
+              </div>
             </div>
-            <Field label="Availability Status" value={form.status} onChange={e => setForm({ ...form, status: e.target.value })} placeholder="Available for Work" />
+          </div>
+
+          <div style={{ borderTop: '1px solid var(--border-color)', margin: 'var(--space-lg) 0', paddingTop: 'var(--space-lg)' }}>
+            <h4 style={{ fontWeight: 600, marginBottom: 'var(--space-md)' }}>🏠 Hero Section Settings</h4>
+            <Field label="My Name (Hero)" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="Your Name" />
+            <Field label="Availability (Status)" value={form.availability} onChange={e => setForm({ ...form, availability: e.target.value })} placeholder="Available for Work" />
+            <Field label="Hero Greeting" value={form.heroGreeting} onChange={e => setForm({ ...form, heroGreeting: e.target.value })} placeholder="Welcome to my portfolio" />
+            <Field label="Designation / Title / Role" value={form.heroDesignation} onChange={e => setForm({ ...form, heroDesignation: e.target.value })} placeholder="Full Stack Software Developer" />
+            <Field label="Hero About Description (Separate from main Bio)" value={form.heroAbout} onChange={e => setForm({ ...form, heroAbout: e.target.value })} type="textarea" placeholder="Building the future with modern web technologies..." style={{ minHeight: 80 }} />
           </div>
         </motion.div>
 

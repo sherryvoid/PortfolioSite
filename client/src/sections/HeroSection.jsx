@@ -6,36 +6,12 @@ import { useData } from '../context/DataContext';
 
 export default function HeroSection() {
   const { profile } = useData();
-  const [roleIndex, setRoleIndex] = useState(0);
-  const [text, setText] = useState('');
-  const [isDeleting, setIsDeleting] = useState(false);
-
-  // Dynamic roles from profile or fallback
-  const roles = (profile?.heroRoles?.length > 0)
-    ? profile.heroRoles
-    : (profile?.heroSubtitle || 'Full Stack Developer · AI Engineer · Problem Solver').split(/[·,|]/).map(s => s.trim()).filter(Boolean);
-
-  useEffect(() => {
-    const currentRole = roles[roleIndex % roles.length];
-    let timeout;
-
-    if (!isDeleting && text === currentRole) {
-      timeout = setTimeout(() => setIsDeleting(true), 2200);
-    } else if (isDeleting && text === '') {
-      setIsDeleting(false);
-      setRoleIndex((prev) => (prev + 1) % roles.length);
-    } else {
-      timeout = setTimeout(() => {
-        setText(currentRole.substring(0, isDeleting ? text.length - 1 : text.length + 1));
-      }, isDeleting ? 35 : 70);
-    }
-
-    return () => clearTimeout(timeout);
-  }, [text, isDeleting, roleIndex, roles]);
 
   const name = profile?.name || 'Developer';
   const greeting = profile?.heroGreeting || 'Welcome to my portfolio';
-  const status = profile?.status || 'Available for Work';
+  const availability = profile?.availability || profile?.status || 'Available for Work';
+  const heroDesignation = profile?.heroDesignation || 'Full Stack Software Developer';
+  const heroAbout = profile?.heroAbout || profile?.bio?.substring(0, 140) || 'Building the future with modern web technologies. Turning complex problems into elegant solutions.';
 
   return (
     <section className="hero" id="home">
@@ -56,7 +32,7 @@ export default function HeroSection() {
             transition={{ delay: 0.2 }}
           >
             <span className="hero-status-dot" />
-            {status}
+            {availability}
           </motion.div>
 
           <motion.p
@@ -82,8 +58,9 @@ export default function HeroSection() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.6 }}
+            style={{ fontSize: '1.5rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 'var(--space-md)' }}
           >
-            {text}<span className="cursor" />
+            {heroDesignation}
           </motion.p>
 
           <motion.p
@@ -92,7 +69,7 @@ export default function HeroSection() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.75 }}
           >
-            {profile?.bio?.substring(0, 140) || 'Building the future with modern web technologies. Turning complex problems into elegant solutions.'}
+            {heroAbout}
           </motion.p>
 
           <motion.div

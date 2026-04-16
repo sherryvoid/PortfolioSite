@@ -2,6 +2,9 @@ const mongoose = require('mongoose');
 
 const profileSchema = new mongoose.Schema({
   name: { type: String, default: 'Developer Name' },
+  siteName: { type: String, default: '' },
+  logo: { type: String, default: '' },
+  favicon: { type: String, default: '' },
   title: { type: String, default: 'Full Stack Developer' },
   bio: { type: String, default: '' },
   photo: { type: String, default: '' },
@@ -24,6 +27,9 @@ const profileSchema = new mongoose.Schema({
   heroGreeting: { type: String, default: 'Welcome to my portfolio' },
   heroRoles: [{ type: String }],    // Typewriter cycling texts e.g. ['Full Stack Developer', 'AI Engineer']
   status: { type: String, default: 'Available for Work' },
+  availability: { type: String, default: 'Available for Work' },
+  heroDesignation: { type: String, default: 'Full Stack Software Developer' },
+  heroAbout: { type: String, default: '' },
   cvPhoto: { type: String, default: '' },  // Separate headshot photo for CV (base64)
   aboutTimeline: [{
     year: String,

@@ -1364,14 +1364,70 @@ img { max-width: 100%; height: auto; }
 .login-error { background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.2); border-radius: var(--radius-md); padding: var(--space-md); color: #EF4444; font-size: var(--text-sm); text-align: center; }
 
 /* Modal */
-.modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.65); backdrop-filter: blur(6px); z-index: var(--z-modal-backdrop); display: flex; align-items: center; justify-content: center; padding: var(--space-xl); }
-.modal-content { background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-2xl); padding: var(--space-2xl); max-width: 600px; width: 100%; max-height: 85vh; overflow-y: auto; z-index: var(--z-modal); }
+.modal-backdrop { 
+  position: fixed; inset: 0; 
+  background: rgba(0,0,0,0.7); 
+  backdrop-filter: blur(8px); 
+  z-index: 9999; 
+  display: flex; align-items: center; justify-content: center; 
+  padding: var(--space-xl); 
+}
+.modal-content { 
+  background: var(--bg-secondary); 
+  border: 1px solid var(--border-color); 
+  border-radius: var(--radius-2xl); 
+  padding: var(--space-2xl); 
+  max-width: 650px; width: 100%; 
+  max-height: 85vh; 
+  overflow-y: auto; 
+  z-index: 10000; 
+  position: relative; 
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
 .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-xl); }
-.modal-header h2 { font-size: var(--text-xl); font-weight: 700; }
-.modal-close { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-xl); width: 36px; height: 36px; border-radius: var(--radius-full); display: flex; align-items: center; justify-content: center; transition: all var(--transition-fast); }
-.modal-close:hover { background: var(--bg-tertiary); color: var(--text-primary); }
+.modal-header h2 { font-size: var(--text-2xl); font-weight: 800; }
+.modal-close-float {
+  position: absolute;
+  top: var(--space-lg);
+  right: var(--space-lg);
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  cursor: pointer;
+  font-size: var(--text-lg);
+  width: 40px; height: 40px;
+  border-radius: var(--radius-full);
+  display: flex; align-items: center; justify-content: center;
+  transition: all var(--transition-fast);
+  z-index: 10;
+}
+.modal-close-float:hover { background: var(--accent-primary); color: white; transform: rotate(90deg); border-color: var(--accent-primary); }
+
 .modal-form { display: flex; flex-direction: column; gap: var(--space-lg); }
 .modal-actions { display: flex; gap: var(--space-md); justify-content: flex-end; margin-top: var(--space-md); }
+
+/* Project Detail Modal UI */
+.project-detail-body { display: flex; flex-direction: column; gap: var(--space-xl); margin-top: var(--space-md); }
+.project-detail-hero { width: 100%; border-radius: var(--radius-xl); overflow: hidden; background: var(--bg-tertiary); display: flex; align-items: center; justify-content: center; min-height: 250px; position: relative; }
+.project-detail-img { width: 100%; height: auto; max-height: 350px; object-fit: cover; transition: transform var(--transition-slow); border-radius: var(--radius-xl); }
+.project-detail-img:hover { transform: scale(1.02); }
+.project-detail-content { display: flex; flex-direction: column; gap: var(--space-md); }
+.project-detail-title { font-size: var(--text-3xl); font-weight: 800; margin-bottom: var(--space-xs); line-height: 1.2; }
+.project-detail-tags { display: flex; flex-wrap: wrap; gap: var(--space-sm); margin-bottom: var(--space-sm); align-items: center; }
+.project-detail-desc { color: var(--text-secondary); line-height: 1.7; font-size: 1.05rem; display: flex; flex-direction: column; gap: var(--space-md); }
+.project-detail-actions { display: flex; flex-wrap: wrap; gap: var(--space-md); margin-top: var(--space-lg); padding-top: var(--space-xl); border-top: 1px solid var(--border-color); }
+.project-detail-actions .btn { flex: 1; min-width: max-content; justify-content: center; }
+
+@media (max-width: 768px) {
+  .modal-content { padding: var(--space-xl); margin: var(--space-sm); max-height: 90vh; }
+  .modal-close-float { top: var(--space-md); right: var(--space-md); width: 32px; height: 32px; }
+  .project-detail-body { margin-top: var(--space-lg); gap: var(--space-lg); }
+  .project-detail-hero { min-height: 180px; }
+  .project-detail-img { max-height: 250px; }
+  .project-detail-title { font-size: var(--text-xl); }
+  .project-detail-actions { flex-direction: column; }
+  .project-detail-actions .btn { width: 100%; }
+}
 
 /* Toast */
 .toast-container { position: fixed; top: var(--space-xl); right: var(--space-xl); z-index: var(--z-toast); display: flex; flex-direction: column; gap: var(--space-sm); }
@@ -1385,10 +1441,7 @@ img { max-width: 100%; height: auto; }
 @keyframes spin { to { transform: rotate(360deg); } }
 .page-loader { display: flex; align-items: center; justify-content: center; min-height: 400px; }
 
-/* Project Detail Modal */
-.project-detail-modal { max-width: 800px; }
-.project-detail-desc { color: var(--text-secondary); line-height: 1.8; margin-bottom: var(--space-xl); }
-.project-detail-links { display: flex; gap: var(--space-md); }
+
 
 /* ======================================
    GLOBAL NEURAL BACKGROUND

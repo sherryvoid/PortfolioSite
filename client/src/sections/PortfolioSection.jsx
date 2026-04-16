@@ -114,21 +114,36 @@ export default function PortfolioSection() {
 
         <Modal isOpen={!!selected} onClose={() => setSelected(null)}>
           {selected && (
-            <div className="project-detail-modal">
-              {selected.thumbnail && (
-                <img src={selected.thumbnail} alt={selected.title}
-                  style={{ width: '100%', borderRadius: 'var(--radius-lg)', marginBottom: 'var(--space-xl)', objectFit: 'cover', maxHeight: 300 }} />
+            <div className="project-detail-body">
+              {selected.thumbnail ? (
+                <div className="project-detail-hero">
+                  <img src={selected.thumbnail} alt={selected.title} className="project-detail-img" />
+                </div>
+              ) : (
+                <div className="project-detail-hero fallback">
+                   <TechIcon name={selected.techStack?.[0] || 'code'} size={64} />
+                </div>
               )}
-              <h2>{selected.title}</h2>
-              <p className="project-detail-desc">{selected.longDescription || selected.description}</p>
-              <div className="project-tech" style={{ marginBottom: 'var(--space-xl)' }}>
-                {selected.techStack?.map(tech => (
-                  <span key={tech} className="tech-tag"><TechIcon name={tech} size={14} /> {tech}</span>
-                ))}
-              </div>
-              <div className="project-detail-links">
-                {selected.liveUrl && <a href={selected.liveUrl} className="btn btn-primary" target="_blank" rel="noopener noreferrer">View Live →</a>}
-                {selected.githubUrl && <a href={selected.githubUrl} className="btn btn-secondary" target="_blank" rel="noopener noreferrer">GitHub</a>}
+              
+              <div className="project-detail-content">
+                <h2 className="project-detail-title gradient-text">{selected.title}</h2>
+                
+                <div className="project-detail-tags">
+                  {selected.techStack?.map(tech => (
+                    <span key={tech} className="tech-tag"><TechIcon name={tech} size={14} /> {tech}</span>
+                  ))}
+                </div>
+
+                <div className="project-detail-desc">
+                  {(selected.longDescription || selected.description || '').split('\n').filter(p => p.trim() !== '').map((para, i) => (
+                    <p key={i}>{para}</p>
+                  ))}
+                </div>
+
+                <div className="project-detail-actions">
+                  {selected.liveUrl && <a href={selected.liveUrl} className="btn btn-primary" target="_blank" rel="noopener noreferrer"><span className="btn-icon">🌐</span> Visit Live Site</a>}
+                  {selected.githubUrl && <a href={selected.githubUrl} className="btn btn-secondary" target="_blank" rel="noopener noreferrer"><span className="btn-icon">📂</span> View Source Code</a>}
+                </div>
               </div>
             </div>
           )}

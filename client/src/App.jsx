@@ -1,8 +1,8 @@
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider } from './context/ThemeContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
-import { DataProvider } from './context/DataContext';
+import { DataProvider, useData } from './context/DataContext';
 
 // Layouts
 import PublicLayout from './layouts/PublicLayout';
@@ -47,9 +47,31 @@ const AdminSuspense = ({ children }) => (
   </Suspense>
 );
 
+function SiteIdentityManager() {
+  const { profile } = useData();
+  const siteName = profile?.siteName || profile?.name || 'Portfolio';
+
+  useEffect(() => {
+    if (siteName) document.title = siteName;
+    if (profile?.favicon) {
+      let link = document.querySelector("link[rel~='icon']");
+      if (!link) {
+        link = document.createElement('link');
+        link.rel = 'icon';
+        document.head.appendChild(link);
+      }
+      link.href = profile.favicon;
+    }
+  }, [siteName, profile?.favicon]);
+
+  return null;
+}
+
 function AppRoutes() {
   return (
-    <Routes>
+    <>
+      <SiteIdentityManager />
+      <Routes>
       {/* Public */}
       <Route path="/" element={
         <PublicLayout>
@@ -82,6 +104,7 @@ function AppRoutes() {
       {/* 404 fallback */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
+    </>
   );
 }
 

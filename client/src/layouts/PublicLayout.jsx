@@ -18,6 +18,7 @@ export default function PublicLayout({ children }) {
   const [scrolled, setScrolled] = useState(false);
   const [scrollProgress, setScrollProgress] = useState(0);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const siteName = profile?.siteName || profile?.name || 'Portfolio';
   const displayName = profile?.name || 'Portfolio';
 
   useEffect(() => {
@@ -46,7 +47,11 @@ export default function PublicLayout({ children }) {
       {/* Navbar */}
       <nav className={`navbar ${scrolled ? 'scrolled' : ''}`}>
         <a href="#home" className="navbar-logo" onClick={() => setMobileOpen(false)}>
-          {'<'}{displayName}{' />'}
+          {profile?.logo ? (
+            <img src={profile.logo} alt={siteName} style={{ height: '32px', width: 'auto', borderRadius: '4px' }} />
+          ) : (
+            <span>{'<'}{siteName}{' />'}</span>
+          )}
         </a>
 
         {/* Desktop nav */}
@@ -127,7 +132,7 @@ export default function PublicLayout({ children }) {
 
       {/* Footer */}
       <footer className="footer" style={{ position: 'relative', zIndex: 1 }}>
-        <p>© {new Date().getFullYear()} {displayName}. Crafted with ❤️ and modern tech.</p>
+        <p>© {new Date().getFullYear()} {siteName}. Crafted with ❤️ and modern tech.</p>
       </footer>
     </>
   );
