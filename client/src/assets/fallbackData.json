@@ -1,0 +1,460 @@
+{
+  "profile": {
+    "social": {
+      "github": "https://github.com",
+      "linkedin": "https://linkedin.com",
+      "twitter": "https://twitter.com",
+      "website": ""
+    },
+    "stats": {
+      "yearsExperience": 3,
+      "projectsCompleted": 15,
+      "happyClients": 10
+    },
+    "_id": "69e1376d4f79fc4cc53b210e",
+    "name": "Shaheryar",
+    "siteName": "Shaheryar",
+    "logo": "",
+    "favicon": "",
+    "title": "Full Stack Software Developer",
+    "bio": "Passionate software developer with expertise in building modern web applications. I specialize in React, Node.js, and cloud technologies. I love turning complex problems into simple, beautiful, and intuitive solutions.",
+    "photo": "",
+    "resume": "",
+    "email": "contact@portfolio.com",
+    "phone": "",
+    "location": "Pakistan",
+    "heroSubtitle": "Software Developer · Problem Solver · Creator",
+    "heroGreeting": "Welcome to my portfolio",
+    "heroRoles": [],
+    "status": "Available for Work",
+    "availability": "Available for Work",
+    "heroDesignation": "Full Stack Software Developer",
+    "heroAbout": "",
+    "cvPhoto": "",
+    "aboutTimeline": [
+      {
+        "year": "2021",
+        "title": "Started Coding Journey",
+        "description": "Began learning web development with HTML, CSS, and JavaScript.",
+        "_id": "69e1376d4f79fc4cc53b210f"
+      },
+      {
+        "year": "2022",
+        "title": "First Professional Project",
+        "description": "Built and deployed my first full-stack web application.",
+        "_id": "69e1376d4f79fc4cc53b2110"
+      },
+      {
+        "year": "2023",
+        "title": "Full Stack Developer",
+        "description": "Mastered React, Node.js, and cloud technologies.",
+        "_id": "69e1376d4f79fc4cc53b2111"
+      },
+      {
+        "year": "2024",
+        "title": "Expanding Horizons",
+        "description": "Exploring AI/ML integration and mobile development.",
+        "_id": "69e1376d4f79fc4cc53b2112"
+      }
+    ],
+    "preferredJobTypes": [],
+    "preferredLocations": [],
+    "preferredWorkModes": [],
+    "experience": [],
+    "education": [],
+    "languages": [],
+    "createdAt": "2026-04-16T19:24:29.329Z",
+    "updatedAt": "2026-04-16T19:29:55.251Z",
+    "__v": 0
+  },
+  "projects": [
+    {
+      "_id": "69e1376d4f79fc4cc53b2116",
+      "title": "E-Commerce Platform",
+      "description": "A full-featured e-commerce platform with payment integration, inventory management, and real-time order tracking.",
+      "longDescription": "Built with React and Node.js, this platform features real-time inventory updates and a comprehensive admin dashboard.",
+      "thumbnail": "",
+      "images": [],
+      "techStack": [
+        "react",
+        "nodejs",
+        "mongodb",
+        "express"
+      ],
+      "liveUrl": "https://example.com",
+      "githubUrl": "https://github.com",
+      "category": "web",
+      "featured": true,
+      "order": 0,
+      "views": 0,
+      "__v": 0,
+      "createdAt": "2026-04-16T19:24:29.334Z",
+      "updatedAt": "2026-04-16T19:24:29.334Z"
+    },
+    {
+      "_id": "69e1376d4f79fc4cc53b2117",
+      "title": "AI Chat Application",
+      "description": "Real-time chat application powered by AI with smart responses and multi-language support.",
+      "longDescription": "",
+      "thumbnail": "",
+      "images": [],
+      "techStack": [
+        "react",
+        "python",
+        "tensorflow",
+        "socketio"
+      ],
+      "liveUrl": "",
+      "githubUrl": "https://github.com",
+      "category": "ai",
+      "featured": true,
+      "order": 1,
+      "views": 0,
+      "__v": 0,
+      "createdAt": "2026-04-16T19:24:29.334Z",
+      "updatedAt": "2026-04-16T19:24:29.334Z"
+    },
+    {
+      "_id": "69e1376d4f79fc4cc53b2118",
+      "title": "Task Management System",
+      "description": "A collaborative project management tool with Kanban boards and real-time updates.",
+      "longDescription": "",
+      "thumbnail": "",
+      "images": [],
+      "techStack": [
+        "react",
+        "nodejs",
+        "mongodb",
+        "socketio"
+      ],
+      "liveUrl": "",
+      "githubUrl": "https://github.com",
+      "category": "web",
+      "featured": false,
+      "order": 2,
+      "views": 0,
+      "__v": 0,
+      "createdAt": "2026-04-16T19:24:29.334Z",
+      "updatedAt": "2026-04-16T19:24:29.334Z"
+    },
+    {
+      "_id": "69e1376d4f79fc4cc53b2119",
+      "title": "Fitness Tracker App",
+      "description": "Cross-platform mobile app for tracking workouts, nutrition, and health metrics.",
+      "longDescription": "",
+      "thumbnail": "",
+      "images": [],
+      "techStack": [
+        "react",
+        "firebase",
+        "typescript"
+      ],
+      "liveUrl": "",
+      "githubUrl": "",
+      "category": "mobile",
+      "featured": false,
+      "order": 3,
+      "views": 0,
+      "__v": 0,
+      "createdAt": "2026-04-16T19:24:29.334Z",
+      "updatedAt": "2026-04-16T19:24:29.334Z"
+    },
+    {
+      "_id": "69e1376d4f79fc4cc53b211a",
+      "title": "REST API Microservices",
+      "description": "Scalable microservices architecture with API gateway and containerized deployment.",
+      "longDescription": "",
+      "thumbnail": "",
+      "images": [],
+      "techStack": [
+        "nodejs",
+        "docker",
+        "kubernetes",
+        "redis"
+      ],
+      "liveUrl": "",
+      "githubUrl": "https://github.com",
+      "category": "backend",
+      "featured": true,
+      "order": 4,
+      "views": 0,
+      "__v": 0,
+      "createdAt": "2026-04-16T19:24:29.334Z",
+      "updatedAt": "2026-04-16T19:24:29.334Z"
+    },
+    {
+      "_id": "69e1376d4f79fc4cc53b211b",
+      "title": "Portfolio Website",
+      "description": "This portfolio website built with React, Framer Motion, and Node.js.",
+      "longDescription": "",
+      "thumbnail": "",
+      "images": [],
+      "techStack": [
+        "react",
+        "nodejs",
+        "mongodb",
+        "express"
+      ],
+      "liveUrl": "",
+      "githubUrl": "https://github.com",
+      "category": "web",
+      "featured": false,
+      "order": 5,
+      "views": 0,
+      "__v": 0,
+      "createdAt": "2026-04-16T19:24:29.334Z",
+      "updatedAt": "2026-04-16T19:24:29.334Z"
+    }
+  ],
+  "skills": [
+    {
+      "_id": "69e1376d4f79fc4cc53b211e",
+      "name": "React",
+      "icon": "react",
+      "category": "frontend",
+      "proficiency": 90,
+      "order": 0,
+      "__v": 0,
+      "createdAt": "2026-04-16T19:24:29.339Z",
+      "updatedAt": "2026-04-16T19:24:29.339Z"
+    },
+    {
+      "_id": "69e1376d4f79fc4cc53b2124",
+      "name": "Node.js",
+      "icon": "nodejs",
+      "category": "backend",
+      "proficiency": 88,
+      "order": 0,
+      "__v": 0,
+      "createdAt": "2026-04-16T19:24:29.339Z",
+      "updatedAt": "2026-04-16T19:24:29.339Z"
+    },
+    {
+      "_id": "69e1376d4f79fc4cc53b2127",
+      "name": "MongoDB",
+      "icon": "mongodb",
+      "category": "database",
+      "proficiency": 85,
+      "order": 0,
+      "__v": 0,
+      "createdAt": "2026-04-16T19:24:29.339Z",
+      "updatedAt": "2026-04-16T19:24:29.339Z"
+    },
+    {
+      "_id": "69e1376d4f79fc4cc53b212a",
+      "name": "Docker",
+      "icon": "docker",
+      "category": "devops",
+      "proficiency": 70,
+      "order": 0,
+      "__v": 0,
+      "createdAt": "2026-04-16T19:24:29.339Z",
+      "updatedAt": "2026-04-16T19:24:29.339Z"
+    },
+    {
+      "_id": "69e1376d4f79fc4cc53b212d",
+      "name": "VS Code",
+      "icon": "vscode",
+      "category": "tools",
+      "proficiency": 95,
+      "order": 0,
+      "__v": 0,
+      "createdAt": "2026-04-16T19:24:29.339Z",
+      "updatedAt": "2026-04-16T19:24:29.339Z"
+    },
+    {
+      "_id": "69e1376d4f79fc4cc53b211f",
+      "name": "JavaScript",
+      "icon": "javascript",
+      "category": "frontend",
+      "proficiency": 92,
+      "order": 1,
+      "__v": 0,
+      "createdAt": "2026-04-16T19:24:29.339Z",
+      "updatedAt": "2026-04-16T19:24:29.339Z"
+    },
+    {
+      "_id": "69e1376d4f79fc4cc53b2125",
+      "name": "Express",
+      "icon": "express",
+      "category": "backend",
+      "proficiency": 85,
+      "order": 1,
+      "__v": 0,
+      "createdAt": "2026-04-16T19:24:29.339Z",
+      "updatedAt": "2026-04-16T19:24:29.339Z"
+    },
+    {
+      "_id": "69e1376d4f79fc4cc53b2128",
+      "name": "PostgreSQL",
+      "icon": "postgresql",
+      "category": "database",
+      "proficiency": 70,
+      "order": 1,
+      "__v": 0,
+      "createdAt": "2026-04-16T19:24:29.339Z",
+      "updatedAt": "2026-04-16T19:24:29.339Z"
+    },
+    {
+      "_id": "69e1376d4f79fc4cc53b212b",
+      "name": "Git",
+      "icon": "git",
+      "category": "devops",
+      "proficiency": 90,
+      "order": 1,
+      "__v": 0,
+      "createdAt": "2026-04-16T19:24:29.339Z",
+      "updatedAt": "2026-04-16T19:24:29.339Z"
+    },
+    {
+      "_id": "69e1376d4f79fc4cc53b212e",
+      "name": "Figma",
+      "icon": "figma",
+      "category": "tools",
+      "proficiency": 60,
+      "order": 1,
+      "__v": 0,
+      "createdAt": "2026-04-16T19:24:29.339Z",
+      "updatedAt": "2026-04-16T19:24:29.339Z"
+    },
+    {
+      "_id": "69e1376d4f79fc4cc53b2120",
+      "name": "TypeScript",
+      "icon": "typescript",
+      "category": "frontend",
+      "proficiency": 80,
+      "order": 2,
+      "__v": 0,
+      "createdAt": "2026-04-16T19:24:29.339Z",
+      "updatedAt": "2026-04-16T19:24:29.339Z"
+    },
+    {
+      "_id": "69e1376d4f79fc4cc53b2126",
+      "name": "Python",
+      "icon": "python",
+      "category": "backend",
+      "proficiency": 75,
+      "order": 2,
+      "__v": 0,
+      "createdAt": "2026-04-16T19:24:29.339Z",
+      "updatedAt": "2026-04-16T19:24:29.339Z"
+    },
+    {
+      "_id": "69e1376d4f79fc4cc53b2129",
+      "name": "Redis",
+      "icon": "redis",
+      "category": "database",
+      "proficiency": 65,
+      "order": 2,
+      "__v": 0,
+      "createdAt": "2026-04-16T19:24:29.339Z",
+      "updatedAt": "2026-04-16T19:24:29.339Z"
+    },
+    {
+      "_id": "69e1376d4f79fc4cc53b212c",
+      "name": "AWS",
+      "icon": "amazonwebservices",
+      "category": "devops",
+      "proficiency": 65,
+      "order": 2,
+      "__v": 0,
+      "createdAt": "2026-04-16T19:24:29.339Z",
+      "updatedAt": "2026-04-16T19:24:29.339Z"
+    },
+    {
+      "_id": "69e1376d4f79fc4cc53b212f",
+      "name": "Postman",
+      "icon": "postman",
+      "category": "tools",
+      "proficiency": 85,
+      "order": 2,
+      "__v": 0,
+      "createdAt": "2026-04-16T19:24:29.339Z",
+      "updatedAt": "2026-04-16T19:24:29.339Z"
+    },
+    {
+      "_id": "69e1376d4f79fc4cc53b2121",
+      "name": "HTML5",
+      "icon": "html5",
+      "category": "frontend",
+      "proficiency": 95,
+      "order": 3,
+      "__v": 0,
+      "createdAt": "2026-04-16T19:24:29.339Z",
+      "updatedAt": "2026-04-16T19:24:29.339Z"
+    },
+    {
+      "_id": "69e1376d4f79fc4cc53b2122",
+      "name": "CSS3",
+      "icon": "css3",
+      "category": "frontend",
+      "proficiency": 90,
+      "order": 4,
+      "__v": 0,
+      "createdAt": "2026-04-16T19:24:29.339Z",
+      "updatedAt": "2026-04-16T19:24:29.339Z"
+    },
+    {
+      "_id": "69e1376d4f79fc4cc53b2123",
+      "name": "Next.js",
+      "icon": "nextjs",
+      "category": "frontend",
+      "proficiency": 75,
+      "order": 5,
+      "__v": 0,
+      "createdAt": "2026-04-16T19:24:29.339Z",
+      "updatedAt": "2026-04-16T19:24:29.339Z"
+    }
+  ],
+  "certifications": [
+    {
+      "_id": "69e1376d4f79fc4cc53b2133",
+      "title": "AWS Certified Solutions Architect",
+      "issuer": "Amazon Web Services",
+      "issueDate": "2024-01-15T00:00:00.000Z",
+      "expiryDate": "2027-01-15T00:00:00.000Z",
+      "credentialUrl": "https://aws.amazon.com/certification/",
+      "badgeImage": "",
+      "order": 0,
+      "__v": 0,
+      "createdAt": "2026-04-16T19:24:29.342Z",
+      "updatedAt": "2026-04-16T19:24:29.342Z"
+    },
+    {
+      "_id": "69e1376d4f79fc4cc53b2134",
+      "title": "Meta Front-End Developer",
+      "issuer": "Meta (Coursera)",
+      "issueDate": "2023-06-01T00:00:00.000Z",
+      "credentialUrl": "https://coursera.org",
+      "badgeImage": "",
+      "order": 1,
+      "__v": 0,
+      "createdAt": "2026-04-16T19:24:29.342Z",
+      "updatedAt": "2026-04-16T19:24:29.342Z"
+    },
+    {
+      "_id": "69e1376d4f79fc4cc53b2135",
+      "title": "MongoDB Developer Certification",
+      "issuer": "MongoDB University",
+      "issueDate": "2023-09-01T00:00:00.000Z",
+      "credentialUrl": "https://university.mongodb.com",
+      "badgeImage": "",
+      "order": 2,
+      "__v": 0,
+      "createdAt": "2026-04-16T19:24:29.342Z",
+      "updatedAt": "2026-04-16T19:24:29.342Z"
+    },
+    {
+      "_id": "69e1376d4f79fc4cc53b2136",
+      "title": "Google IT Automation with Python",
+      "issuer": "Google (Coursera)",
+      "issueDate": "2023-03-01T00:00:00.000Z",
+      "credentialUrl": "https://coursera.org",
+      "badgeImage": "",
+      "order": 3,
+      "__v": 0,
+      "createdAt": "2026-04-16T19:24:29.342Z",
+      "updatedAt": "2026-04-16T19:24:29.342Z"
+    }
+  ]
+}
