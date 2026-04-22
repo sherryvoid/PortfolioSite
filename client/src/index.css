@@ -774,7 +774,6 @@ img { max-width: 100%; height: auto; }
   display: grid;
   grid-template-columns: 1fr 1.4fr;
   gap: var(--space-3xl);
-  align-items: start;
 }
 
 .about-illustration-wrapper {

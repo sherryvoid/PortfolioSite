@@ -9,7 +9,8 @@ const PLATFORMS = [
   { id: 'arbeitnow', label: 'Arbeitnow', desc: 'Europe & Germany jobs (no key)' },
   { id: 'jobicy', label: 'Jobicy', desc: 'Remote jobs, all industries (no key)' },
   { id: 'adzuna', label: 'Adzuna', desc: 'DE/UK/US/AT — needs free key' },
-  { id: 'jsearch', label: 'JSearch', desc: 'Google Jobs + LinkedIn + Indeed (RapidAPI key)' }
+  { id: 'jsearch', label: 'Google Jobs (JSearch)', desc: 'Google Jobs + LinkedIn + Indeed (RapidAPI key)' },
+  { id: 'themuse', label: 'The Muse', desc: 'General & tech roles (no key)' }
 ];
 
 const WORK_MODES = [
@@ -61,12 +62,13 @@ export default function JobMatcher() {
   const [isAnalyzedFilter, setIsAnalyzedFilter] = useState('');
   const [workMode, setWorkMode] = useState('');
   const [jobType, setJobType] = useState('');
+  const [filterLocation, setFilterLocation] = useState('');
+  const [filterLanguage, setFilterLanguage] = useState('');
   const [country, setCountry] = useState('');
   const [source, setSource] = useState('');
 
   const [selectedPlatforms, setSelectedPlatforms] = useState(['remotive', 'arbeitnow', 'jobicy']);
   const [showSyncOptions, setShowSyncOptions] = useState(false);
-  const [syncSearchQuery, setSyncSearchQuery] = useState('');
 
   const [stats, setStats] = useState({ sources: [], countries: [], totalJobs: 0, analyzedJobs: 0 });
 
@@ -79,24 +81,25 @@ export default function JobMatcher() {
       if (workMode) params.workMode = workMode;
       if (jobType) params.jobType = jobType;
       if (country) params.country = country;
+      if (filterLocation) params.location = filterLocation;
+      if (filterLanguage) params.language = filterLanguage;
       if (source) params.source = source;
       const res = await jobApi.getJobs(params);
       setJobs(res.data.jobs); setTotal(res.data.total);
       setTotalPages(res.data.totalPages); setPage(res.data.page);
     } catch (error) { console.error('Failed to fetch jobs', error); }
     finally { setLoading(false); }
-  }, [search, isAnalyzedFilter, workMode, jobType, country, source]);
+  }, [search, isAnalyzedFilter, workMode, jobType, country, filterLocation, filterLanguage, source]);
 
   const fetchStats = async () => { try { const res = await jobApi.getStats(); setStats(res.data); } catch (e) {} };
 
-  useEffect(() => { fetchJobs(1); }, [isAnalyzedFilter, workMode, jobType, country, source]);
+  useEffect(() => { fetchJobs(1); }, [isAnalyzedFilter, workMode, jobType, country, filterLocation, filterLanguage, source]);
   useEffect(() => { fetchStats(); }, []);
 
   const handleSync = async () => {
-    if (!syncSearchQuery.trim()) { alert('Please enter a job title/role to search for (e.g., "MERN developer", "Full Stack Developer")'); return; }
     setSyncing(true);
     try {
-      const res = await jobApi.syncJobs(selectedPlatforms, syncSearchQuery.trim());
+      const res = await jobApi.syncJobs(selectedPlatforms, search.trim(), filterLocation.trim(), filterLanguage, jobType);
       alert(res.data.message);
       setShowSyncOptions(false);
       fetchJobs(1);
@@ -134,7 +137,7 @@ export default function JobMatcher() {
   };
 
   const handleSearchSubmit = (e) => { e.preventDefault(); fetchJobs(1); };
-  const handleResetFilters = () => { setSearch(''); setIsAnalyzedFilter(''); setWorkMode(''); setJobType(''); setCountry(''); setSource(''); fetchJobs(1); };
+  const handleResetFilters = () => { setSearch(''); setIsAnalyzedFilter(''); setWorkMode(''); setJobType(''); setCountry(''); setFilterLocation(''); setFilterLanguage(''); setSource(''); fetchJobs(1); };
   const togglePlatform = (id) => { setSelectedPlatforms(prev => prev.includes(id) ? prev.filter(p => p !== id) : [...prev, id]); };
 
   const sourceLabel = (s) => ({ remotive: '🟢 Remotive', arbeitnow: '🔵 Arbeitnow', jobicy: '🟠 Jobicy', adzuna: '🟣 Adzuna', jsearch: '🔴 JSearch' }[s] || s);
@@ -169,24 +172,15 @@ export default function JobMatcher() {
           {syncing && (
             <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)', borderRadius: 'var(--radius-md)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', zIndex: 10, gap: 'var(--space-md)' }}>
               <div className="loader" style={{ width: 40, height: 40 }} />
-              <div style={{ color: '#fff', fontSize: '14px', fontWeight: 600 }}>Syncing "{syncSearchQuery}" from {selectedPlatforms.length} platform(s)...</div>
-              <div style={{ display: 'flex', gap: 6 }}>{[0.1,0.2,0.3,0.4,0.5].map(d => <div key={d} className="skeleton" style={{ width: 50, height: 6, borderRadius: 3, animationDelay: `${d}s` }} />)}</div>
+              <div style={{ color: '#fff', fontSize: '14px', fontWeight: 600 }}>Syncing...</div>
             </div>
           )}
 
-          {/* Search Query Input */}
-          <div style={{ marginBottom: 'var(--space-lg)' }}>
-            <label style={{ fontSize: '14px', fontWeight: 600, marginBottom: 'var(--space-sm)', display: 'block' }}>🔍 What role are you looking for?</label>
-            <input
-              className="form-input"
-              placeholder='e.g., "MERN Developer", "Full Stack Developer", "React Engineer"'
-              value={syncSearchQuery}
-              onChange={e => setSyncSearchQuery(e.target.value)}
-              style={{ fontSize: '14px' }}
-            />
-            <p style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: 4 }}>
-              Also searches German equivalents (e.g., "developer" → "Entwickler")
-            </p>
+          <div style={{ marginBottom: 'var(--space-md)', background: 'rgba(59,130,246,0.1)', border: '1px solid rgba(59,130,246,0.2)', padding: '12px', borderRadius: 'var(--radius-md)', fontSize: '13px' }}>
+            <strong>Note:</strong> Sync uses your active Table Filters below to grab specifically matched jobs! Currently configured to search for: <br/>
+            <span style={{ fontWeight: 600, color: 'var(--text-accent)', display: 'inline-block', marginTop: 4 }}>
+              {` Role: "${search || 'All'}" • City: "${filterLocation || 'All'}" • Lang: "${filterLanguage || 'All'}" • Type: "${JOB_TYPES.find(j=>j.value===jobType)?.label || 'All'}"`}
+            </span>
           </div>
 
           <h3 style={{ marginBottom: 'var(--space-md)', fontSize: '14px' }}>Select Platforms:</h3>
@@ -205,7 +199,7 @@ export default function JobMatcher() {
           </div>
           <div style={{ display: 'flex', gap: 'var(--space-sm)' }}>
             <button className="btn btn-primary btn-sm" onClick={handleSync} disabled={syncing || selectedPlatforms.length === 0}>
-              {syncing ? '⟳ Syncing...' : `Sync "${syncSearchQuery || '...'}" from ${selectedPlatforms.length} platform(s)`}
+              {syncing ? '⟳ Syncing...' : `Sync Using Filters (${selectedPlatforms.length} platforms)`}
             </button>
             <button className="btn btn-secondary btn-sm" onClick={() => setShowSyncOptions(false)}>Cancel</button>
           </div>
@@ -215,12 +209,13 @@ export default function JobMatcher() {
       {/* Filters */}
       <div className="admin-table-card" style={{ marginBottom: 'var(--space-md)' }}>
         <form onSubmit={handleSearchSubmit} style={{ display: 'flex', gap: 'var(--space-sm)', padding: 'var(--space-md)', flexWrap: 'wrap', alignItems: 'flex-end', borderBottom: '1px solid var(--border-color)' }}>
-          <div className="form-group" style={{ margin: 0, flex: '1 1 200px' }}><label className="form-label">Search</label><input className="form-input" placeholder="Title or company..." value={search} onChange={e => setSearch(e.target.value)} /></div>
-          <div className="form-group" style={{ margin: 0, flex: '0 1 140px' }}><label className="form-label">Work Mode</label><select className="form-input" value={workMode} onChange={e => setWorkMode(e.target.value)}>{WORK_MODES.map(w => <option key={w.value} value={w.value}>{w.label}</option>)}</select></div>
-          <div className="form-group" style={{ margin: 0, flex: '0 1 140px' }}><label className="form-label">Job Type</label><select className="form-input" value={jobType} onChange={e => setJobType(e.target.value)}>{JOB_TYPES.map(j => <option key={j.value} value={j.value}>{j.label}</option>)}</select></div>
-          <div className="form-group" style={{ margin: 0, flex: '0 1 140px' }}><label className="form-label">Country</label><select className="form-input" value={country} onChange={e => setCountry(e.target.value)}><option value="">All Countries</option>{stats.countries.filter(c => c).map(c => <option key={c} value={c}>{c}</option>)}</select></div>
-          <div className="form-group" style={{ margin: 0, flex: '0 1 140px' }}><label className="form-label">Platform</label><select className="form-input" value={source} onChange={e => setSource(e.target.value)}><option value="">All</option>{stats.sources.map(s => <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>)}</select></div>
-          <div className="form-group" style={{ margin: 0, flex: '0 1 100px' }}><label className="form-label">AI</label><select className="form-input" value={isAnalyzedFilter} onChange={e => setIsAnalyzedFilter(e.target.value)}><option value="">All</option><option value="true">Analyzed</option><option value="false">Pending</option></select></div>
+          <div className="form-group" style={{ margin: 0, flex: '1 1 200px' }}><label className="form-label">Role Search</label><input className="form-input" placeholder="Title or company..." value={search} onChange={e => setSearch(e.target.value)} /></div>
+          <div className="form-group" style={{ margin: 0, flex: '1 1 140px' }}><label className="form-label">Location / City</label><input className="form-input" placeholder='e.g. "Bremen"' value={filterLocation} onChange={e => setFilterLocation(e.target.value)} /></div>
+          <div className="form-group" style={{ margin: 0, flex: '0 1 120px' }}><label className="form-label">Language</label><select className="form-input" value={filterLanguage} onChange={e => setFilterLanguage(e.target.value)}><option value="">All</option><option value="english">English</option><option value="german">German</option></select></div>
+          <div className="form-group" style={{ margin: 0, flex: '0 1 120px' }}><label className="form-label">Job Type</label><select className="form-input" value={jobType} onChange={e => setJobType(e.target.value)}>{JOB_TYPES.map(j => <option key={j.value} value={j.value}>{j.label}</option>)}</select></div>
+          <div className="form-group" style={{ margin: 0, flex: '0 1 120px' }}><label className="form-label">Work Mode</label><select className="form-input" value={workMode} onChange={e => setWorkMode(e.target.value)}>{WORK_MODES.map(w => <option key={w.value} value={w.value}>{w.label}</option>)}</select></div>
+          <div className="form-group" style={{ margin: 0, flex: '0 1 120px' }}><label className="form-label">Platform</label><select className="form-input" value={source} onChange={e => setSource(e.target.value)}><option value="">All</option>{stats.sources.map(s => <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>)}</select></div>
+          <div className="form-group" style={{ margin: 0, flex: '0 1 100px' }}><label className="form-label">AI Match</label><select className="form-input" value={isAnalyzedFilter} onChange={e => setIsAnalyzedFilter(e.target.value)}><option value="">All</option><option value="true">Analyzed</option><option value="false">Pending</option></select></div>
           <button type="submit" className="btn btn-secondary" style={{ height: 38 }}>Search</button>
           <button type="button" className="btn btn-secondary" onClick={handleResetFilters} style={{ height: 38 }}>Reset</button>
         </form>
@@ -247,7 +242,7 @@ export default function JobMatcher() {
                   </div>
                   <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{job.company}</div>
                 </td>
-                <td><div style={{ fontSize: '13px' }}>{job.country || job.location || '—'}</div><div style={{ fontSize: '11px', color: 'var(--text-accent)' }}>{workModeLabel(job.workMode)}</div></td>
+                <td><div style={{ fontSize: '13px', lineHeight: 1.4 }}>{!job.location ? (job.country || '—') : (!job.country ? job.location : (job.location.toLowerCase().includes(job.country.toLowerCase()) ? job.location : `${job.location}, ${job.country}`))}</div><div style={{ fontSize: '11px', color: 'var(--text-accent)', marginTop: 2 }}>{workModeLabel(job.workMode)}</div></td>
                 <td>{jobTypeLabel(job.jobType)}</td>
                 <td><span style={{ fontSize: '12px' }}>{sourceLabel(job.source)}</span></td>
                 <td>
@@ -311,7 +306,7 @@ export default function JobMatcher() {
                 {langBadge(selectedJob.language)}
               </div>
               <p style={{ color: 'var(--text-muted)', fontSize: '14px', margin: 0 }}>
-                {selectedJob.company} • {selectedJob.country || selectedJob.location} • {workModeLabel(selectedJob.workMode)}
+                {selectedJob.company} • {!selectedJob.location ? (selectedJob.country || '—') : (!selectedJob.country ? selectedJob.location : (selectedJob.location.toLowerCase().includes(selectedJob.country.toLowerCase()) ? selectedJob.location : `${selectedJob.location}, ${selectedJob.country}`))} • {workModeLabel(selectedJob.workMode)}
               </p>
               <div style={{ display: 'flex', gap: 12, marginTop: 'var(--space-md)', flexWrap: 'wrap', alignItems: 'center' }}>
                 <div style={{

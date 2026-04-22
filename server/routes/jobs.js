@@ -4,6 +4,7 @@ const JobListing = require('../models/JobListing');
 const auth = require('../middleware/auth');
 const aiService = require('../services/aiService');
 const emailService = require('../services/emailService');
+const cheerio = require('cheerio');
 
 const router = express.Router();
 
@@ -32,11 +33,14 @@ function inferCountry(location) {
 }
 
 function normaliseJobType(raw) {
-  const t = (raw || '').toLowerCase().replace(/[\s_-]/g, '');
-  if (t.includes('fulltime')) return 'full_time';
-  if (t.includes('parttime')) return 'part_time';
-  if (t.includes('contract') || t.includes('freelance')) return 'contract';
-  if (t.includes('internship')) return 'internship';
+  let val = raw;
+  if (Array.isArray(raw)) val = raw[0]; // Extract first value if API returns an Array
+  const t = (val || '').toString().toLowerCase().replace(/[\s_-]/g, '');
+  if (t.includes('fulltime') || t.includes('vollzeit')) return 'full_time';
+  if (t.includes('parttime') || t.includes('teilzeit') || t.includes('halbtags')) return 'part_time';
+  if (t.includes('werkstudent')) return 'part_time'; // Common DE student contract
+  if (t.includes('contract') || t.includes('freelance') || t.includes('befristet')) return 'contract';
+  if (t.includes('internship') || t.includes('praktikum') || t.includes('trainee')) return 'internship';
   if (t.includes('minijob') || t.includes('mini')) return 'mini_job';
   return 'full_time';
 }
@@ -45,12 +49,26 @@ function smartJobTypeDetection(apiJobType, description, title) {
   const apiType = normaliseJobType(apiJobType);
   const cleanDesc = (description || '').replace(/<[^>]*>/g, '').toLowerCase();
   const cleanTitle = (title || '').toLowerCase();
+  
+  // Title carries maximum weight (strict override)
+  const titleSignals = {
+    part_time: /\b(part[\s-]?time|teilzeit|werkstudent)\b/i,
+    mini_job: /\b(mini[\s-]?job|450[\s€]?|520[\s€]?|geringfügig)\b/i,
+    internship: /\b(internship|praktikum|trainee)\b/i,
+    contract: /\b(contract|freelance|befristet|freiberuflich)\b/i,
+    full_time: /\b(full[\s-]?time|vollzeit)\b/i
+  };
+
+  for (const [type, pattern] of Object.entries(titleSignals)) {
+    if (cleanTitle.match(pattern)) return type;
+  }
+
   const fullText = cleanTitle + ' ' + cleanDesc;
   const signals = {
     full_time: /\b(full[\s-]?time|vollzeit|40\s*h|38\.5\s*h|permanent position|festanstellung)\b/gi,
-    part_time: /\b(part[\s-]?time|teilzeit|20\s*h|half[\s-]?time|halbtags)\b/gi,
+    part_time: /\b(part[\s-]?time|teilzeit|20\s*h|half[\s-]?time|halbtags|werkstudent)\b/gi,
     contract: /\b(contract|freelance|befristet|temporary|fixed[\s-]?term|freiberuflich)\b/gi,
-    internship: /\b(internship|praktikum|werkstudent|working student|trainee)\b/gi,
+    internship: /\b(internship|praktikum|trainee)\b/gi,
     mini_job: /\b(mini[\s-]?job|450[\s€]|520[\s€]|geringfügig)\b/gi
   };
   const descSignals = {};
@@ -66,14 +84,32 @@ function smartJobTypeDetection(apiJobType, description, title) {
 function detectLanguage(text) {
   const clean = (text || '').toLowerCase();
   const germanWords = [
-    'und', 'für', 'die', 'der', 'das', 'wir', 'suchen', 'stelle',
-    'bewerbung', 'anforderungen', 'erfahrung', 'kenntnisse', 'aufgaben',
-    'qualifikation', 'vollzeit', 'teilzeit', 'sofort', 'ab sofort',
-    'festanstellung', 'arbeitsort', 'homeoffice', 'berufserfahrung',
-    'unternehmen', 'mitarbeiter', 'bewerben', 'gehalt', 'arbeitszeit'
+    'und', 'für', 'die', 'der', 'das', 'wir', 'suchen', 'stelle', 'bewerbung', 'anforderungen',
+    'erfahrung', 'kenntnisse', 'aufgaben', 'qualifikation', 'vollzeit', 'teilzeit',
+    'festanstellung', 'arbeitsort', 'homeoffice', 'berufserfahrung', 'unternehmen',
+    'mitarbeiter', 'bewerben', 'gehalt', 'arbeitszeit'
   ];
-  const count = germanWords.filter(w => new RegExp(`\\b${w}\\b`, 'i').test(clean)).length;
-  return count >= 3 ? 'german' : 'english';
+  const englishWords = [
+    'and', 'for', 'the', 'we', 'are', 'looking', 'job', 'application', 'requirements',
+    'experience', 'knowledge', 'responsibilities', 'qualifications', 'full-time',
+    'part-time', 'location', 'company', 'employees', 'apply', 'salary', 'working'
+  ];
+  
+  const deCount = germanWords.filter(w => new RegExp(`\\b${w}\\b`, 'i').test(clean)).length;
+  const enCount = englishWords.filter(w => new RegExp(`\\b${w}\\b`, 'i').test(clean)).length;
+  
+  // English-Friendly Override: Even if the job posting is written in deep German context,
+  // if it explicitly mentions requirements/acceptance of English, treat it as "English" 
+  // so that English-seeking users can still find it!
+  const englishFriendlyRegex = /\b(fluent english|english speaking|english required|english is acceptable|good english|excellent english|business english|englischkenntnisse|gute englisch|fließend englisch|englisch in wort)\b/i;
+  
+  if (englishFriendlyRegex.test(clean)) {
+    return 'english';
+  }
+
+  // Only classify as German if German strongly outweighs English. 
+  // This prevents falsely tagging English jobs that have a standard German boilerplate footer.
+  return deCount > enCount + 2 ? 'german' : 'english';
 }
 
 // ─── Search-aware helpers ───────────────────────────────────
@@ -115,17 +151,29 @@ router.get('/', auth, async (req, res, next) => {
   try {
     const { search, isAnalyzed, source, workMode, country, jobType, page = 1, limit = 20 } = req.query;
     const query = {};
-    if (search) {
-      query.$or = [
-        { title: { $regex: search, $options: 'i' } },
-        { company: { $regex: search, $options: 'i' } }
-      ];
+    if (search || req.query.location) {
+      query.$and = [];
+      if (search) {
+        query.$and.push({ $or: [
+          { title: { $regex: search, $options: 'i' } },
+          { company: { $regex: search, $options: 'i' } },
+          { description: { $regex: search, $options: 'i' } }
+        ]});
+      }
+      if (req.query.location) {
+        query.$and.push({ $or: [
+          { location: { $regex: req.query.location, $options: 'i' } },
+          { country: { $regex: req.query.location, $options: 'i' } }
+        ]});
+      }
     }
+    
     if (isAnalyzed === 'true') query.isAnalyzed = true;
     else if (isAnalyzed === 'false') query.isAnalyzed = false;
     if (source) query.source = source;
     if (workMode) query.workMode = workMode;
     if (country) query.country = country;
+    if (req.query.language) query.language = req.query.language;
     if (jobType) query.jobType = jobType;
 
     const pageNum = Math.max(1, parseInt(page));
@@ -190,169 +238,263 @@ router.get('/applied', auth, async (req, res, next) => {
 });
 
 // ─── POST /api/jobs/sync ────────────────────────────────────
-// Now accepts searchQuery to fetch relevant jobs only
 router.post('/sync', auth, async (req, res, next) => {
   try {
-    const { platforms = ['remotive', 'arbeitnow', 'jobicy'], searchQuery = '' } = req.body;
+    const { platforms = ['remotive', 'arbeitnow', 'jobicy', 'themuse'], searchQuery = '', locationQuery = '', language = '', jobType = '' } = req.body;
+    
+    // Fix: NEVER combine Role, Language, and Type into one massive API query string.
+    // External APIs treat spaces as mathematical AND. Searching "werkstudent english part-time"
+    // forces the API to find a single job with all 3 words in the title, which returns 0 results!
+    // Instead, we purely request the user's role, and natively filter it down locally.
+    const apiSearchQuery = searchQuery.trim() || (jobType ? jobType.replace('_', ' ') : 'jobs');
+
     const searchVariants = getSearchVariants(searchQuery);
-    const searchEncoded = encodeURIComponent(searchQuery);
-    let totalNew = 0;
+    
+    let allFetchedJobs = [];
     const errors = [];
 
-    // Helper to create job if not duplicate and matches search
-    async function tryCreateJob(jobData) {
-      // For APIs without search, filter client-side
-      if (searchVariants.length && !jobMatchesSearch(jobData, searchVariants)) return false;
-      try {
-        const exists = await JobListing.findOne({ apiId: jobData.apiId });
-        if (!exists) {
-          await JobListing.create(jobData);
-          return true;
-        }
-      } catch (err) { /* duplicate */ }
-      return false;
-    }
-
-    // ── Remotive ── (supports ?search=)
+    // ── Remotive ──
     if (platforms.includes('remotive')) {
       try {
-        const url = searchQuery
-          ? `https://remotive.com/api/remote-jobs?search=${searchEncoded}&limit=50`
-          : 'https://remotive.com/api/remote-jobs?category=software-dev&limit=50';
+        const q = `${apiSearchQuery} ${locationQuery || ''}`.trim();
+        const url = q ? `https://remotive.com/api/remote-jobs?search=${encodeURIComponent(q)}&limit=50` : 'https://remotive.com/api/remote-jobs?limit=50';
         const resp = await axios.get(url, { timeout: 15000 });
         for (const job of (resp.data.jobs || [])) {
-          const desc = job.description || '';
-          const added = await tryCreateJob({
+          allFetchedJobs.push({
             apiId: `remotive_${job.id}`, title: job.title, company: job.company_name,
             location: job.candidate_required_location || 'Remote',
             country: inferCountry(job.candidate_required_location),
-            workMode: inferWorkMode(job.candidate_required_location || 'remote'),
-            jobType: smartJobTypeDetection(job.job_type, desc, job.title),
-            language: detectLanguage(desc + ' ' + job.title),
-            salary: job.salary || 'Not specified', description: desc, url: job.url,
-            tags: job.tags || [], source: 'remotive', publishedAt: new Date(job.publication_date)
+            salary: job.salary || 'Not specified', description: job.description || '', url: job.url,
+            tags: job.tags || [], source: 'remotive', publishedAt: new Date(job.publication_date),
+            _apiJobType: job.job_type, _apiWorkMode: inferWorkMode(job.candidate_required_location || 'remote')
           });
-          if (added) totalNew++;
         }
       } catch (err) { errors.push(`Remotive: ${err.message}`); }
     }
 
-    // ── Arbeitnow ── (no search param — filter client-side with DE variants)
+    // ── Arbeitnow ──
     if (platforms.includes('arbeitnow')) {
       try {
         const resp = await axios.get('https://www.arbeitnow.com/api/job-board-api', { timeout: 15000 });
         for (const job of (resp.data.data || []).slice(0, 80)) {
-          const desc = job.description || '';
-          const added = await tryCreateJob({
+          allFetchedJobs.push({
             apiId: `arbeitnow_${job.slug}`, title: job.title, company: job.company_name,
             location: job.location || 'Europe', country: inferCountry(job.location),
-            workMode: job.remote ? 'remote' : inferWorkMode(job.location),
-            jobType: smartJobTypeDetection(job.job_types?.[0] || 'full_time', desc, job.title),
-            language: detectLanguage(desc + ' ' + job.title),
-            salary: 'Not specified', description: desc, url: job.url,
-            tags: job.tags || [], source: 'arbeitnow', publishedAt: new Date(job.created_at * 1000)
+            salary: 'Not specified', description: job.description || '', url: job.url,
+            tags: job.tags || [], source: 'arbeitnow', publishedAt: new Date(job.created_at * 1000),
+            _enforceLocation: true, _apiJobType: job.job_types?.[0] || 'full_time', _apiWorkMode: job.remote ? 'remote' : inferWorkMode(job.location)
           });
-          if (added) totalNew++;
         }
       } catch (err) { errors.push(`Arbeitnow: ${err.message}`); }
     }
 
-    // ── Jobicy ── (supports ?tag=)
+    // ── Jobicy ──
     if (platforms.includes('jobicy')) {
       try {
-        const url = searchQuery
-          ? `https://jobicy.com/api/v2/remote-jobs?count=50&tag=${searchEncoded}`
-          : 'https://jobicy.com/api/v2/remote-jobs?count=50';
+        // Fix for Jobicy 400 Error: Jobicy tag rejects long strings, so we only pass the first word or skip the tag entirely
+        const tag = apiSearchQuery.split(' ')[0]; 
+        const url = tag ? `https://jobicy.com/api/v2/remote-jobs?count=50&tag=${encodeURIComponent(tag)}` : 'https://jobicy.com/api/v2/remote-jobs?count=50';
         const resp = await axios.get(url, { timeout: 15000 });
         for (const job of (resp.data.jobs || [])) {
-          const desc = job.jobDescription || job.jobExcerpt || '';
-          const added = await tryCreateJob({
+          allFetchedJobs.push({
             apiId: `jobicy_${job.id}`, title: job.jobTitle, company: job.companyName,
-            location: job.jobGeo || 'Remote', country: inferCountry(job.jobGeo), workMode: 'remote',
-            jobType: smartJobTypeDetection(job.jobType, desc, job.jobTitle),
-            language: detectLanguage(desc + ' ' + job.jobTitle),
+            location: job.jobGeo || 'Remote', country: inferCountry(job.jobGeo),
             salary: job.annualSalaryMin ? `${job.salaryCurrency || '$'}${job.annualSalaryMin}-${job.annualSalaryMax}` : 'Not specified',
-            description: desc, url: job.url, tags: job.jobIndustry ? [job.jobIndustry] : [],
-            source: 'jobicy', publishedAt: new Date(job.pubDate)
+            description: job.jobDescription || job.jobExcerpt || '', url: job.url, tags: job.jobIndustry ? [job.jobIndustry] : [],
+            source: 'jobicy', publishedAt: new Date(job.pubDate),
+            _apiJobType: job.jobType, _apiWorkMode: 'remote'
           });
-          if (added) totalNew++;
         }
       } catch (err) { errors.push(`Jobicy: ${err.message}`); }
     }
 
-    // ── Adzuna ── (supports ?what=)
+    // ── Adzuna ──
     if (platforms.includes('adzuna')) {
       const adzunaAppId = process.env.ADZUNA_APP_ID;
       const adzunaKey = process.env.ADZUNA_API_KEY;
       if (!adzunaAppId || !adzunaKey) {
         errors.push('Adzuna: API keys not set');
       } else {
-        const whatParam = searchQuery || 'software developer';
         const adzunaCountries = ['de', 'gb', 'us', 'at'];
         for (const cc of adzunaCountries) {
           try {
-            const resp = await axios.get(
-              `https://api.adzuna.com/v1/api/jobs/${cc}/search/1?app_id=${adzunaAppId}&app_key=${adzunaKey}&results_per_page=25&what=${encodeURIComponent(whatParam)}&content-type=application/json`,
-              { timeout: 15000 }
-            );
+            const whereQuery = locationQuery ? `&where=${encodeURIComponent(locationQuery)}` : '';
+            const resp = await axios.get(`https://api.adzuna.com/v1/api/jobs/${cc}/search/1?app_id=${adzunaAppId}&app_key=${adzunaKey}&results_per_page=25&what=${encodeURIComponent(apiSearchQuery || 'jobs')}${whereQuery}&content-type=application/json`, { timeout: 15000 });
             for (const job of (resp.data.results || [])) {
-              const desc = job.description || '';
-              const added = await tryCreateJob({
+              allFetchedJobs.push({
                 apiId: `adzuna_${job.id}`, title: job.title, company: job.company?.display_name || 'Unknown',
-                location: job.location?.display_name || cc.toUpperCase(),
-                country: inferCountry(job.location?.display_name || cc),
-                workMode: inferWorkMode(job.title + ' ' + desc),
-                jobType: smartJobTypeDetection(job.contract_time || 'full_time', desc, job.title),
-                language: detectLanguage(desc + ' ' + job.title),
+                location: job.location?.display_name || cc.toUpperCase(), country: inferCountry(job.location?.display_name || cc),
                 salary: job.salary_min ? `${job.salary_min}-${job.salary_max} ${job.salary_currency || 'EUR'}` : 'Not specified',
-                description: desc, url: job.redirect_url || job.url || '',
-                tags: job.category ? [job.category.label] : [], source: 'adzuna', publishedAt: new Date(job.created)
+                description: job.description || '', url: job.redirect_url || job.url || '', tags: job.category ? [job.category.label] : [], source: 'adzuna', publishedAt: new Date(job.created),
+                _apiJobType: job.contract_time || 'full_time', _apiWorkMode: inferWorkMode(job.title + ' ' + (job.description || ''))
               });
-              if (added) totalNew++;
             }
           } catch (err) { errors.push(`Adzuna (${cc}): ${err.message}`); }
         }
       }
     }
 
-    // ── JSearch ── (supports ?query=)
+    // ── JSearch ──
     if (platforms.includes('jsearch')) {
       const jsearchKey = process.env.JSEARCH_API_KEY;
       if (!jsearchKey) {
         errors.push('JSearch: API key not set');
       } else {
         try {
-          const jsearchQuery = searchQuery || 'software developer in Germany';
+          const jsearchQuery = `${apiSearchQuery || 'jobs'} ${locationQuery ? `in ${locationQuery}` : 'remote'}`;
           const resp = await axios.get('https://jsearch.p.rapidapi.com/search', {
             params: { query: jsearchQuery, page: '1', num_pages: '1' },
-            headers: { 'X-RapidAPI-Key': jsearchKey, 'X-RapidAPI-Host': 'jsearch.p.rapidapi.com' },
-            timeout: 15000
+            headers: { 'X-RapidAPI-Key': jsearchKey, 'X-RapidAPI-Host': 'jsearch.p.rapidapi.com' }, timeout: 15000
           });
           for (const job of (resp.data.data || [])) {
-            const desc = job.job_description || '';
-            const added = await tryCreateJob({
+            allFetchedJobs.push({
               apiId: `jsearch_${job.job_id}`, title: job.job_title, company: job.employer_name || 'Unknown',
               location: `${job.job_city || ''} ${job.job_state || ''} ${job.job_country || ''}`.trim(),
               country: inferCountry(job.job_country || job.job_city || ''),
-              workMode: job.job_is_remote ? 'remote' : 'onsite',
-              jobType: smartJobTypeDetection(job.job_employment_type || 'full_time', desc, job.job_title),
-              language: detectLanguage(desc + ' ' + job.job_title),
               salary: job.job_min_salary ? `${job.job_min_salary}-${job.job_max_salary} ${job.job_salary_currency || ''}` : 'Not specified',
-              description: desc, url: job.job_apply_link || job.job_google_link || '',
-              tags: job.job_required_skills || [], source: 'jsearch',
-              publishedAt: new Date(job.job_posted_at_datetime_utc || Date.now())
+              description: job.job_description || '', url: job.job_apply_link || job.job_google_link || '',
+              tags: job.job_required_skills || [], source: 'jsearch', publishedAt: new Date(job.job_posted_at_datetime_utc || Date.now()),
+              _apiJobType: job.job_employment_type || 'full_time', _apiWorkMode: job.job_is_remote ? 'remote' : 'onsite'
             });
-            if (added) totalNew++;
           }
         } catch (err) { errors.push(`JSearch: ${err.message}`); }
       }
     }
 
+    // ── The Muse ──
+    if (platforms.includes('themuse')) {
+      try {
+        const resp = await axios.get(`https://www.themuse.com/api/public/jobs?page=${Math.floor(Math.random() * 5) + 1}`, { timeout: 15000 });
+        for (const job of (resp.data.results || [])) {
+          const locStr = job.locations?.[0]?.name || 'Remote';
+          allFetchedJobs.push({
+            apiId: `themuse_${job.id}`, title: job.name, company: job.company?.name || 'Unknown',
+            location: locStr, country: inferCountry(locStr),
+            salary: 'Not specified', description: job.contents || '', url: job.refs?.landing_page || '',
+            tags: job.categories?.map(c => c.name) || [], source: 'themuse', publishedAt: new Date(job.publication_date),
+            _enforceLocation: true, _apiJobType: 'full_time', _apiWorkMode: inferWorkMode(locStr)
+          });
+        }
+      } catch (err) { errors.push(`TheMuse: ${err.message}`); }
+    }
+
+    // Deduplicate DB natively
+    const apiIds = allFetchedJobs.map(j => j.apiId);
+    const existingJobs = await JobListing.find({ apiId: { $in: apiIds } }).select('apiId');
+    const existingIds = new Set(existingJobs.map(j => j.apiId));
+    let newJobs = allFetchedJobs.filter(j => !existingIds.has(j.apiId));
+
+    // Base Title/Location filtering natively enforced strictly on ALL platforms
+    newJobs = newJobs.filter(jobData => {
+      // Role search strict validation
+      if (searchVariants.length && !jobMatchesSearch(jobData, searchVariants)) return false;
+      
+      // Strict Location Enforcement locally (fixing the bug where APIs inject random Global jobs)
+      if (locationQuery) {
+        const qLoc = locationQuery.toLowerCase();
+        const jLoc = (jobData.location || '').toLowerCase();
+        const jCty = (jobData.country || '').toLowerCase();
+        if (!jLoc.includes(qLoc) && !jCty.includes(qLoc)) return false;
+      }
+      return true;
+    });
+
+    // Intelligent Script-Based Categorization Pipeline (No external AI calls)
+    let finalJobsToInsert = newJobs.map(job => {
+      job.jobType = smartJobTypeDetection(job._apiJobType || 'full_time', job.description, job.title);
+      job.language = detectLanguage(job.description + ' ' + job.title);
+      job.workMode = job._apiWorkMode || inferWorkMode(job.location);
+      
+      delete job._apiJobType;
+      delete job._apiWorkMode;
+      delete job._enforceLocation;
+      
+      return job;
+    });
+
+    // POST-CATEGORIZATION STRICT FILTERING
+    // Ensures whatever the categorization scripts detected mathematically matches the dropdowns.
+    if (jobType) {
+      finalJobsToInsert = finalJobsToInsert.filter(job => job.jobType === jobType);
+    }
+    if (language) {
+      finalJobsToInsert = finalJobsToInsert.filter(job => {
+        // --- GERMAN CONTEXT BYPASS ---
+        // If the user selects "Language: English" but explicitly types a German role ("werkstudent"),
+        // strictly filtering out "German" language jobs would discard exactly what they asked for!
+        if (language === 'english' && job.language === 'german') {
+          const q = searchQuery.toLowerCase();
+          const germanRoles = ['werkstudent', 'teilzeit', 'minijob', 'entwickler', 'praktikum', 'aushilfe'];
+          if (q && germanRoles.some(gr => q.includes(gr))) return true; 
+        }
+        return job.language === language;
+      });
+    }
+
+    if (finalJobsToInsert.length > 0) {
+      await JobListing.insertMany(finalJobsToInsert, { ordered: false });
+    }
+
     const queryNote = searchQuery ? ` for "${searchQuery}"` : '';
-    const msg = `Sync complete${queryNote}. ${totalNew} new jobs added from ${platforms.join(', ')}.` +
+    const msg = `Sync complete${queryNote}. ${finalJobsToInsert.length} new jobs categorized and added.` +
       (errors.length ? ` Warnings: ${errors.join('; ')}` : '');
-    res.json({ message: msg, newJobs: totalNew });
+    res.json({ message: msg, newJobs: finalJobsToInsert.length });
   } catch (error) { next(error); }
+});
+
+// ─── POST /api/jobs/scrape ────────────────────────────────────
+// Accepts a URL or raw text, extracts fields using AI or Cheerio, and runs analyzeJobMatch instantly
+router.post('/scrape', auth, async (req, res, next) => {
+  try {
+    const { url, rawText } = req.body;
+    let content = rawText || '';
+
+    if (!content && url) {
+      try {
+        const fetchRes = await axios.get(url, { headers: { 'User-Agent': 'Mozilla/5.0' }, timeout: 15000 });
+        const $ = cheerio.load(fetchRes.data);
+        $('script, style, nav, footer, iframe, noscript').remove();
+        content = $('body').text().replace(/\s+/g, ' ').trim();
+      } catch (err) {
+        return res.status(400).json({ message: 'Failed to scrape URL. The site might be protected. Please copy and paste the job description manually into the text box.' });
+      }
+    }
+
+    if (!content || content.length < 50) {
+      return res.status(400).json({ message: 'Not enough text content found or provided.' });
+    }
+
+    // Attempt to parse out basic Title/Company via a rapid localized AI prompt before full analysis
+    // Usually job matches want title and company to cleanly map.
+    // We will just do a lightweight generic fallback if we don't have them explicitly.
+    const genericJobObject = {
+      title: 'Custom Job URL/Text',
+      company: 'External Link',
+      location: 'Remote/Unknown',
+      jobType: 'full_time',
+      language: 'english', // Assuming translation handles it
+      description: content.substring(0, 15000)
+    };
+
+    const analysisResult = await aiService.analyzeJobMatch(genericJobObject);
+
+    res.json({
+      job: genericJobObject,
+      analysis: analysisResult
+    });
+  } catch (error) { next(error); }
+});
+
+// ─── POST /api/jobs/custom ──────────────────────────────────
+router.post('/custom', auth, async (req, res, next) => {
+  try {
+    const data = { ...req.body };
+    if (!data.url) data.url = 'manual_custom_entry';
+    if (!data.apiId) data.apiId = 'custom_' + Date.now() + Math.floor(Math.random() * 1000);
+    const job = new JobListing(data);
+    await job.save();
+    res.json(job);
+  } catch(error) { next(error); }
 });
 
 // ─── POST /api/jobs/:id/analyze ─────────────────────────────

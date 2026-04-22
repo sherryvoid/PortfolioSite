@@ -217,6 +217,19 @@ export default function ProfileManager() {
     }
   };
 
+  const [generatingSnapshot, setGeneratingSnapshot] = useState(false);
+  const handleSnapshot = async () => {
+    setGeneratingSnapshot(true);
+    try {
+      const res = await api.post('/profile/snapshot');
+      alert(res.data.message);
+    } catch (err) {
+      alert('Failed to generate snapshot: ' + (err.response?.data?.message || err.message));
+    } finally {
+      setGeneratingSnapshot(false);
+    }
+  };
+
   const sectionCard = (title, children, delay = 0, action = null) => (
     <motion.div
       className="admin-chart-card"
@@ -238,6 +251,9 @@ export default function ProfileManager() {
       <div className="admin-header">
         <h1>Profile & About</h1>
         <div style={{ display: 'flex', gap: 'var(--space-md)', alignItems: 'center' }}>
+          <button className="btn btn-secondary" onClick={handleSnapshot} disabled={generatingSnapshot}>
+            {generatingSnapshot ? 'Generating...' : '🛠️ Generate AI Snapshot'}
+          </button>
           {saved && <span style={{ color: 'var(--accent-green)', fontFamily: 'var(--font-mono)', fontSize: '0.8rem' }}>✓ Saved!</span>}
           <button className="btn btn-primary" onClick={handleSave} disabled={loading}>
             {loading ? 'Saving...' : 'Save Changes'}
@@ -356,8 +372,27 @@ export default function ProfileManager() {
         </div>
       </motion.div>
 
-
-
+      {/* Experience */}
+      {sectionCard('💼 Work Experience', (
+        <>
+          {form.experience.length === 0 && (
+            <p style={{ color: 'var(--text-muted)', textAlign: 'center', padding: 'var(--space-lg)' }}>No experience entries. Click "+ Add" to create one.</p>
+          )}
+          {form.experience.map((item, idx) => (
+            <div key={idx} style={{ padding: 'var(--space-lg)', background: 'var(--bg-secondary)', borderRadius: 'var(--radius-lg)', marginBottom: 'var(--space-md)', border: '1px solid var(--border-color)' }}>
+              <div className="form-row" style={{ gridTemplateColumns: '1fr 1fr auto' }}>
+                <Field label="Company" value={item.company} onChange={e => updateExperience(idx, 'company', e.target.value)} placeholder="Acme Corp" />
+                <Field label="Role" value={item.role} onChange={e => updateExperience(idx, 'role', e.target.value)} placeholder="Senior Developer" />
+                <div style={{ display: 'flex', alignItems: 'flex-end', paddingBottom: 'var(--space-md)' }}>
+                  <button className="btn btn-danger btn-sm" onClick={() => removeExperience(idx)}>✕</button>
+                </div>
+              </div>
+              <Field label="Duration" value={item.duration} onChange={e => updateExperience(idx, 'duration', e.target.value)} placeholder="Jan 2020 - Present" />
+              <Field label="Description" value={item.description} onChange={e => updateExperience(idx, 'description', e.target.value)} type="textarea" placeholder="Spearheaded development..." style={{ minHeight: 80 }} />
+            </div>
+          ))}
+        </>
+      ), 0.3, <button className="btn btn-secondary btn-sm" onClick={addExperience}>+ Add</button>)}
       {/* Education */}
       {sectionCard('🎓 Education', (
         <>

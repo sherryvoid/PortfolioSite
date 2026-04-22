@@ -10,6 +10,7 @@ const navItems = [
   { to: '/admin/skills', icon: '⚡', label: 'Skills' },
   { to: '/admin/certifications', icon: '🏆', label: 'Certifications' },
   { to: '/admin/jobs', icon: '🤖', label: 'AI Job Matcher' },
+  { to: '/admin/quick-match', icon: '⚡', label: 'Quick URL Matcher' },
   { to: '/admin/applications', icon: '📋', label: 'Applications' },
   { to: '/admin/cv-generator', icon: '📄', label: 'CV Generator' },
   { to: '/admin/messages', icon: '📧', label: 'Messages' },

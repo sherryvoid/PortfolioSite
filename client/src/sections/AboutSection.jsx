@@ -54,9 +54,11 @@ export default function AboutSection() {
       >
         <div className="about-grid">
           {/* Profile Image — flies in from bottom-left */}
-          <AnimatedSection variant="flyBottomLeft" delay={0.15}>
-            <div className="about-illustration-wrapper">
-              <div className="profile-image-frame">
+          <div style={{ alignSelf: 'stretch', height: '100%' }}>
+            <div style={{ position: 'sticky', top: '120px', height: 'fit-content' }}>
+              <AnimatedSection variant="flyBottomLeft" delay={0.15}>
+                <div className="about-illustration-wrapper">
+                  <div className="profile-image-frame">
                 <img
                   src={profileImage}
                   alt={`${profile?.name || 'Developer'} — Software Developer`}
@@ -70,14 +72,16 @@ export default function AboutSection() {
                   <span>📸</span>
                   <p>Upload your photo to<br /><code>client/public/images/profile.png</code></p>
                 </div>
-              </div>
+                  </div>
+                </div>
+              </AnimatedSection>
             </div>
-          </AnimatedSection>
+          </div>
 
           {/* Bio + Stats — flies in from bottom-right */}
           <AnimatedSection variant="flyBottomRight" delay={0.25}>
             <div className="about-bio">
-              <p>{bio}</p>
+              <p style={{ whiteSpace: 'pre-wrap', lineHeight: 1.8 }}>{bio}</p>
             </div>
 
             {/* Stats — each from a different direction */}

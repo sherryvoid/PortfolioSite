@@ -52,11 +52,12 @@ export default function CollapsibleSection({ title, subtitle, gradientWord, chil
         {isOpen && (
           <motion.div
             className="collapsible-content"
-            initial={{ height: 0, opacity: 0, filter: 'blur(8px)' }}
+            initial={{ height: 0, opacity: 0, filter: 'blur(8px)', overflow: 'hidden' }}
             animate={{
               height: 'auto',
               opacity: 1,
               filter: 'blur(0px)',
+              transitionEnd: { overflow: 'visible' },
               transition: {
                 height: { duration: 0.5, ease: [0.22, 1, 0.36, 1] },
                 opacity: { duration: 0.35, delay: 0.1 },
@@ -67,13 +68,13 @@ export default function CollapsibleSection({ title, subtitle, gradientWord, chil
               height: 0,
               opacity: 0,
               filter: 'blur(6px)',
+              overflow: 'hidden',
               transition: {
                 opacity: { duration: 0.2 },
                 filter: { duration: 0.2 },
                 height: { duration: 0.4, ease: [0.22, 1, 0.36, 1], delay: 0.05 },
               },
             }}
-            style={{ overflow: 'hidden' }}
           >
             <div className="collapsible-inner">
               {children}

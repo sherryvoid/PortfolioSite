@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import Modal from '../../components/Modal';
 import TechIcon from '../../components/TechIcon';
@@ -20,6 +20,32 @@ export default function ProjectsManager() {
   const [thumbnailFile, setThumbnailFile] = useState(null);
   const [thumbnailPreview, setThumbnailPreview] = useState('');
   const fileInputRef = useRef(null);
+
+  // For Drag-and-Drop ordering
+  const [localProjects, setLocalProjects] = useState([]);
+  useEffect(() => { setLocalProjects(projects); }, [projects]);
+  const [draggedIndex, setDraggedIndex] = useState(null);
+
+  const handleDragStart = (index) => setDraggedIndex(index);
+  
+  const handleDragEnter = (index) => {
+    if (draggedIndex === null || draggedIndex === index) return;
+    const newItems = [...localProjects];
+    const item = newItems.splice(draggedIndex, 1)[0];
+    newItems.splice(index, 0, item);
+    setDraggedIndex(index);
+    setLocalProjects(newItems);
+  };
+
+  const handleDragEnd = async () => {
+    setDraggedIndex(null);
+    try {
+      await api.patch('/projects/reorder', { orderedIds: localProjects.map(p => p._id) });
+      refetch();
+    } catch (err) {
+      alert('Failed to sync project order.');
+    }
+  };
 
   const openNew = () => {
     setEditing(null);
@@ -145,8 +171,16 @@ export default function ProjectsManager() {
             </tr>
           </thead>
           <tbody>
-            {projects.map(project => (
-              <tr key={project._id}>
+            {localProjects.map((project, index) => (
+              <tr 
+                key={project._id}
+                draggable
+                onDragStart={() => handleDragStart(index)}
+                onDragEnter={() => handleDragEnter(index)}
+                onDragEnd={handleDragEnd}
+                onDragOver={(e) => e.preventDefault()}
+                style={{ cursor: draggedIndex !== null ? 'grabbing' : 'grab', opacity: draggedIndex === index ? 0.3 : 1 }}
+              >
                 <td>
                   {project.thumbnail ? (
                     <img src={project.thumbnail} alt="" style={{ width: 48, height: 36, objectFit: 'cover', borderRadius: 6, border: '1px solid var(--border-color)' }} />
@@ -174,7 +208,7 @@ export default function ProjectsManager() {
                 </td>
               </tr>
             ))}
-            {projects.length === 0 && (
+            {localProjects.length === 0 && (
               <tr><td colSpan={7} style={{ textAlign: 'center', padding: 'var(--space-2xl)', color: 'var(--text-muted)' }}>No projects yet. Click "Add Project" to create one.</td></tr>
             )}
           </tbody>
@@ -188,11 +222,21 @@ export default function ProjectsManager() {
             <input className="form-input" required value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} />
           </div>
           <div className="form-group">
-            <label className="form-label">Short Description *</label>
+            <label className="form-label">
+              Short Description * 
+              <span style={{ float: 'right', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                {form.description?.length || 0} characters
+              </span>
+            </label>
             <textarea className="form-textarea" required style={{ minHeight: 80 }} value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} />
           </div>
           <div className="form-group">
-            <label className="form-label">Detailed Description</label>
+            <label className="form-label">
+              Detailed Description
+              <span style={{ float: 'right', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                {form.longDescription?.length || 0} characters
+              </span>
+            </label>
             <textarea className="form-textarea" value={form.longDescription} onChange={e => setForm({ ...form, longDescription: e.target.value })} />
           </div>
           <div className="form-row">
@@ -252,13 +296,13 @@ export default function ProjectsManager() {
                 <div className="thumbnail-dropzone" onClick={() => fileInputRef.current?.click()}>
                   <div className="thumbnail-dropzone-icon">🖼️</div>
                   <p>Click to upload thumbnail</p>
-                  <span>PNG, JPG, WebP • Max 5MB</span>
+                  <span>Recommended: 1280x720 • AVIF, PNG, JPG, WebP • Max 5MB</span>
                 </div>
               )}
               <input
                 ref={fileInputRef}
                 type="file"
-                accept="image/*"
+                accept="image/*, image/avif, image/webp"
                 onChange={handleFileChange}
                 style={{ display: 'none' }}
               />

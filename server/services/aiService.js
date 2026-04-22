@@ -16,6 +16,9 @@ async function buildUserContext() {
     Project.find().sort({ order: 1 }), Certification.find().sort({ order: 1 })
   ]);
   const s = [];
+  if (profile?.aiVector) {
+    s.push(`=== MANUALLY GENERATED CONTEXT SNAPSHOT ===\n${profile.aiVector}\n==============================================\n`);
+  }
   s.push(`Name: ${profile?.name || 'Developer'}`);
   s.push(`Title/Designation: ${profile?.title || 'Software Developer'}`);
   s.push(`Bio: ${profile?.bio || 'N/A'}`);
@@ -158,51 +161,27 @@ Description:
 ${cleanDesc}
 
 ===== INSTRUCTIONS =====
-LINE 1: A single integer 0-100 representing match percentage. NOTHING else.
-
-## 📊 Score Breakdown
-| Category | Score | Notes |
-|---|---|---|
-| Technical Skills Match | X/10 | ... |
-| Experience Level Fit | X/10 | ... |
-| Domain Knowledge | X/10 | ... |
-| Location/Availability Fit | X/10 | ... |
-| Overall Culture Fit | X/10 | ... |
-
-## ✅ What Your CV MUST Have Before Applying
-Numbered list of minimum required elements.
-
-## 🔧 Specific CV Amendments
-Actionable bullet points with before/after examples.
-
-## 💡 Skills to Highlight
-Which current skills align and should be featured.
-
-## ⚠️ Gaps to Address
-What the job requires that candidate lacks. For each, a 1-sentence strategy.
-
-## 🎯 Interview Preparation Tips
-2-3 likely questions with suggested answer angles.
+1. Determine an honest Match Percentage (0-100). Do NOT output 0% just because a few skills are missing. Baseline on existing overlaps.
+2. Provide a 2 paragraph clear Evaluation/Recommendation.
+3. Include a explicit "Motivation Letter Strategy" paragraph: identify EXACTLY which of the candidate's existing projects/experiences they should mention in a cover letter, and HOW it relates to this job's core demands.
 
 ===== MACHINE-READABLE DATA =====
-After markdown, add EXACTLY this JSON block:
+After your markdown evaluation, add EXACTLY this JSON block (ensure the markdown block uses \`\`\`json):
 \`\`\`json
 {
+  "matchScore": <0-100>,
   "breakdown": { "technicalSkills": <0-10>, "experienceLevel": <0-10>, "domainKnowledge": <0-10>, "locationFit": <0-10>, "cultureFit": <0-10> },
   "matchedSkills": ["skill1", "skill2"],
-  "missingSkills": ["skill1", "skill2"]
+  "missingSkills": ["missingSkill1", "missingSkill2"]
 }
 \`\`\`
     `.trim();
 
     const { text: responseText, provider } = await callAI(prompt);
-    const lines = responseText.trim().split('\n');
-    let matchScore = 50;
-    const first = parseInt(lines[0].replace(/[^0-9]/g, ''), 10);
-    if (!isNaN(first) && first >= 0 && first <= 100) { matchScore = first; lines.shift(); }
-
-    const data = extractJSON(responseText) || { breakdown: {}, matchedSkills: [], missingSkills: [] };
-    const recommendation = lines.join('\n').replace(/```json[\s\S]*?```/g, '').trim();
+    
+    const data = extractJSON(responseText) || { matchScore: 50, breakdown: {}, matchedSkills: [], missingSkills: [] };
+    const recommendation = responseText.replace(/```json[\s\S]*?```/g, '').trim();
+    let matchScore = data.matchScore || 50;
 
     return {
       matchScore, recommendation, provider,
@@ -413,4 +392,49 @@ Return ONLY valid JSON (same structure as input but improved):
     console.error('ATS Improve Error:', error.message);
     return { ...currentCV, suggestions: ['ATS improvement failed: ' + error.message] };
   }
+};
+
+// ═══════════════════════════════════════════════════════════════
+// 5) BATCH CATEGORIZE JOBS — AI parsing of sync batches
+// ═══════════════════════════════════════════════════════════════
+exports.batchCategorizeJobs = async (jobs) => {
+  if (!jobs || jobs.length === 0) return [];
+
+  const jobPrompts = jobs.map((j) => `
+[JOB_ID: ${j.apiId}]
+Title: ${j.title}
+Location: ${j.location}
+Description: ${(j.description || '').substring(0, 1500)}
+  `).join('\n\n---\n\n');
+
+  const prompt = `
+You are an expert HR data parsing system integrating seamlessly with a backend pipeline.
+Analyze the following job postings.
+Your ONLY output must be a strict JSON array.
+Do NOT use the candidate's custom profile! Rely strictly on the textual job context provided below.
+For each job, deduce:
+- jobType: MUST be one of 'full_time', 'part_time', 'contract', 'internship', 'mini_job'. Map German terms accurately (Werkstudent -> part_time, Teilzeit -> part_time, Praktikum -> internship).
+- language: The primary required speaking language or the language of the job description. MUST be 'english' or 'german' (if they explicitly require or accept English, tag it as 'english' so candidates know they can apply!).
+- workMode: MUST be one of 'remote', 'hybrid', 'onsite'.
+
+Output EXACTLY this JSON format (array of objects):
+\`\`\`json
+[
+  {
+    "apiId": "job1_id",
+    "jobType": "part_time",
+    "language": "english",
+    "workMode": "remote"
+  }
+]
+\`\`\`
+
+Here are the jobs:
+${jobPrompts}
+  `.trim();
+
+  const { text } = await callAI(prompt);
+  const data = extractJSON(text);
+  if (!Array.isArray(data)) throw new Error('AI returned invalid format (not an array)');
+  return data;
 };

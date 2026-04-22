@@ -56,7 +56,8 @@ const profileSchema = new mongoose.Schema({
   }],
   preferredJobTypes: [String],      // ['full_time', 'part_time']
   preferredLocations: [String],     // ['Germany', 'Remote']
-  preferredWorkModes: [String]      // ['remote', 'hybrid']
+  preferredWorkModes: [String],     // ['remote', 'hybrid']
+  aiVector: { type: String, default: '' } // Stringified JSON snapshot of all candidate stats for generic Job Matching
 }, {
   timestamps: true
 });
