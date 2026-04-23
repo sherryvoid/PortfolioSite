@@ -25,6 +25,39 @@ function getTransporter() {
 }
 
 /**
+ * Send an email using configured SMTP
+ * @param {Object} options - { to, subject, body, fromName, replyTo }
+ * @returns {Object} - { success, messageId, error }
+ */
+exports.sendEmail = async ({ to, subject, body, fromName, replyTo }) => {
+  const transport = getTransporter();
+  if (!transport) {
+    return {
+      success: false,
+      error: 'Email not configured. Set SMTP_HOST, SMTP_USER, SMTP_PASS in .env'
+    };
+  }
+
+  const from = process.env.SMTP_FROM || `"${fromName || 'Portfolio System'}" <${process.env.SMTP_USER}>`;
+
+  try {
+    const info = await transport.sendMail({
+      from,
+      to,
+      replyTo,
+      subject,
+      text: body,
+      html: body.replace(/\n/g, '<br>')
+    });
+
+    return { success: true, messageId: info.messageId };
+  } catch (error) {
+    console.error('Email send error:', error.message);
+    return { success: false, error: error.message };
+  }
+};
+
+/**
  * Send a follow-up email for a job application
  * @param {Object} options - { to, subject, body, fromName }
  * @returns {Object} - { success, messageId, error }

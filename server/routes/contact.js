@@ -1,6 +1,7 @@
 const express = require('express');
 const ContactMessage = require('../models/ContactMessage');
 const auth = require('../middleware/auth');
+const emailService = require('../services/emailService');
 
 const router = express.Router();
 
@@ -15,6 +16,17 @@ router.post('/', async (req, res, next) => {
 
     const contactMessage = new ContactMessage({ name, email, subject, message });
     await contactMessage.save();
+
+    // Send email alert natively if SMTP is configured
+    if (process.env.SMTP_HOST && process.env.SMTP_USER) {
+      emailService.sendEmail({
+        to: process.env.SMTP_USER, // Send alert to the configured email
+        replyTo: email,
+        subject: `New Portfolio Message: ${subject}`,
+        body: `You received a new message from your portfolio website!\n\nName: ${name}\nEmail: ${email}\n\nMessage:\n${message}`,
+        fromName: name
+      });
+    }
 
     res.status(201).json({ message: 'Message sent successfully!' });
   } catch (error) {
