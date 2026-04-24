@@ -27,7 +27,8 @@ const categoryLabels = {
   backend: 'Backend',
   database: 'Database',
   devops: 'DevOps',
-  tools: 'Tools'
+  tools: 'Tools',
+  frameworks: 'Frameworks'
 };
 
 const getSkillColor = (name) => {

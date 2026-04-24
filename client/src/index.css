@@ -2053,9 +2053,9 @@ img { max-width: 100%; height: auto; }
   .navbar-links { display: none; }
   .mobile-menu-btn { display: flex; }
 
-  .section { padding: var(--space-2xl) var(--space-md); }
+  .section { padding: var(--space-xl) var(--space-md); }
 
-  .hero { padding: var(--space-2xl) var(--space-md); min-height: 100svh; }
+  .hero { padding: var(--space-xl) var(--space-md); min-height: 100svh; }
   .hero-grid { gap: var(--space-xl); }
   .hero-illustration-wrapper { max-width: 280px; }
   .hero-orbit-ring { width: 240px; height: 240px; }
@@ -2102,6 +2102,34 @@ img { max-width: 100%; height: auto; }
 
   .stats-grid { grid-template-columns: 1fr; }
   .cert-card { padding: var(--space-lg); }
+
+  /* Mobile App Feel Improvements */
+  .section { padding: var(--space-lg) var(--space-sm); }
+  .hero { padding: var(--space-lg) var(--space-sm); min-height: 100svh; }
+  .btn { width: 100%; justify-content: center; padding: 12px 16px; }
+  .glass-card, .glow-card { padding: var(--space-md); border-radius: var(--radius-lg); }
+  .project-card { border-radius: var(--radius-lg); margin-bottom: var(--space-sm); }
+  
+  /* Horizontal scroll for filters (like native apps) */
+  .portfolio-filters, .honeycomb-filters { 
+    flex-wrap: nowrap; 
+    overflow-x: auto; 
+    padding-bottom: 8px; 
+    justify-content: flex-start; 
+    scrollbar-width: none; 
+    -ms-overflow-style: none;
+  }
+  .portfolio-filters::-webkit-scrollbar, .honeycomb-filters::-webkit-scrollbar { 
+    display: none; 
+  }
+  .filter-btn { flex: 0 0 auto; padding: 8px 16px; font-size: var(--text-sm); }
+  
+  /* Compact typography */
+  .section-heading { margin-bottom: var(--space-xl); }
+  .section-heading p { font-size: var(--text-sm); }
+  .project-info { padding: var(--space-md); }
+  .project-title { font-size: var(--text-lg); }
+  .about-bio p { font-size: var(--text-sm); }
 }
 
 /* Safe area for notched devices */

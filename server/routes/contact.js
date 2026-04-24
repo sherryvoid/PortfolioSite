@@ -18,17 +18,23 @@ router.post('/', async (req, res, next) => {
     await contactMessage.save();
 
     // Send email alert natively if SMTP is configured
+    let emailStatusMessage = '';
     if (process.env.SMTP_HOST && process.env.SMTP_USER) {
-      emailService.sendEmail({
+      const result = await emailService.sendEmail({
         to: process.env.SMTP_USER, // Send alert to the configured email
         replyTo: email,
         subject: `New Portfolio Message: ${subject}`,
         body: `You received a new message from your portfolio website!\n\nName: ${name}\nEmail: ${email}\n\nMessage:\n${message}`,
         fromName: name
       });
+      
+      if (!result.success) {
+        console.error('Failed to send email alert:', result.error);
+        emailStatusMessage = ' (Message saved, but email notification failed. Check SMTP config.)';
+      }
     }
 
-    res.status(201).json({ message: 'Message sent successfully!' });
+    res.status(201).json({ message: `Message sent successfully!${emailStatusMessage}` });
   } catch (error) {
     next(error);
   }

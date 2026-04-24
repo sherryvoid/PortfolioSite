@@ -21,8 +21,13 @@ export default function PortfolioSection() {
   const { trackSection, trackProjectClick } = useAnalytics();
   const [filter, setFilter] = useState('all');
   const [selected, setSelected] = useState(null);
+  const [visibleCount, setVisibleCount] = useState(6);
   const sectionRef = useRef(null);
   const isInView = useInView(sectionRef, { once: true, amount: 0.1 });
+
+  useEffect(() => {
+    setVisibleCount(6);
+  }, [filter]);
 
   useEffect(() => {
     if (isInView) trackSection('portfolio');
@@ -31,6 +36,7 @@ export default function PortfolioSection() {
   if (!projects || projects.length === 0) return null;
 
   const filtered = filter === 'all' ? projects : projects.filter(p => p.category === filter);
+  const displayedProjects = filtered.slice(0, visibleCount);
 
   return (
     <div ref={sectionRef}>
@@ -59,7 +65,7 @@ export default function PortfolioSection() {
 
         <motion.div className="projects-grid" layout>
           <AnimatePresence mode="popLayout">
-            {filtered.map((project, i) => (
+            {displayedProjects.map((project, i) => (
               <motion.div
                 key={project._id || project.title}
                 className={`project-card ${project.featured ? 'featured' : ''}`}
@@ -111,6 +117,22 @@ export default function PortfolioSection() {
             ))}
           </AnimatePresence>
         </motion.div>
+
+        {filtered.length > visibleCount && (
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            style={{ display: 'flex', justifyContent: 'center', marginTop: 'var(--space-2xl)' }}
+          >
+            <button 
+              className="btn btn-secondary" 
+              onClick={() => setVisibleCount(filtered.length)}
+              style={{ padding: '12px 32px', fontSize: 'var(--text-md)' }}
+            >
+              View More Projects ▾
+            </button>
+          </motion.div>
+        )}
 
         <Modal isOpen={!!selected} onClose={() => setSelected(null)}>
           {selected && (

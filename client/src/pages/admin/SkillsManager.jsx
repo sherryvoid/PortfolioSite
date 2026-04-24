@@ -5,7 +5,7 @@ import TechIcon from '../../components/TechIcon';
 import { useData } from '../../context/DataContext';
 import api from '../../api/axiosConfig';
 
-const categories = ['frontend', 'backend', 'database', 'devops', 'tools', 'language'];
+const categories = ['frontend', 'backend', 'database', 'devops', 'tools', 'language', 'frameworks'];
 const emptySkill = { name: '', icon: '', category: 'frontend', proficiency: 50 };
 
 export default function SkillsManager() {
