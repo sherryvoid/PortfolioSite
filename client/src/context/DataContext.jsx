@@ -39,16 +39,23 @@ export function DataProvider({ children }) {
       const freshSkills = skillsRes.data;
       const freshCerts = certsRes.data;
 
-      setProfile(freshProfile);
-      setProjects(freshProjects);
-      setSkills(freshSkills);
-      setCertifications(freshCerts);
-
-      // Persist to cache
-      localStorage.setItem('portfolio_profile', JSON.stringify(freshProfile));
-      localStorage.setItem('portfolio_projects', JSON.stringify(freshProjects));
-      localStorage.setItem('portfolio_skills', JSON.stringify(freshSkills));
-      localStorage.setItem('portfolio_certifications', JSON.stringify(freshCerts));
+      // Validate types to prevent crashes if a misconfigured server returns HTML (e.g. index.html fallback)
+      if (freshProfile && typeof freshProfile === 'object' && !Array.isArray(freshProfile)) {
+        setProfile(freshProfile);
+        localStorage.setItem('portfolio_profile', JSON.stringify(freshProfile));
+      }
+      if (Array.isArray(freshProjects)) {
+        setProjects(freshProjects);
+        localStorage.setItem('portfolio_projects', JSON.stringify(freshProjects));
+      }
+      if (Array.isArray(freshSkills)) {
+        setSkills(freshSkills);
+        localStorage.setItem('portfolio_skills', JSON.stringify(freshSkills));
+      }
+      if (Array.isArray(freshCerts)) {
+        setCertifications(freshCerts);
+        localStorage.setItem('portfolio_certifications', JSON.stringify(freshCerts));
+      }
 
     } catch (error) {
       console.warn('Backend currently asleep or unreachable. Using cached/fallback data.', error.message);

@@ -24,6 +24,10 @@ const jobRoutes = require('./routes/jobs'); // [NEW] Job Matcher routes
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// Trust proxies (required for AWS Load Balancers, Nginx, or API Gateways)
+// Otherwise rate-limiter will block the proxy IP and ban everyone simultaneously.
+app.set('trust proxy', 1);
+
 // Connect to MongoDB
 connectDB();
 
